@@ -1,8 +1,3 @@
-// 1. Supabase 연결 설정 (변수명 통일)
-// script.js 상단
-const { createClient } = supabase;
-const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY);
-
 // 2. 게임 상태 변수
 let userScore = 0;
 let computerScore = 0;
