@@ -1,3 +1,10 @@
+// 1. 기존에 있던 URL, KEY, supabase 관련 선언을 모두 지우고 이 코드로 시작하세요.
+const { createClient } = supabase; // html에서 불러온 supabase 라이브러리 사용
+const _supabase = createClient(SUPABASE_URL, SUPABASE_KEY); 
+
+// 변수 이름 앞에 '_'가 붙어있는지 꼭 확인하세요! 
+// 만약 아래 코드에서 supabase.from()을 쓰고 있다면 _supabase.from()으로 바꿔야 합니다.
+
 // 2. 게임 상태 변수
 let userScore = 0;
 let computerScore = 0;
