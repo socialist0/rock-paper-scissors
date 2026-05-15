@@ -18,43 +18,29 @@
         <p><strong id="display-username"></strong>님, 환영합니다!</p>
         
         <div class="score-board">
-            <p><span id="player-name-display">나</span>의 누적 승수: <span id="user-score">0</span></p>
-            <p>컴퓨터 누적 승수: <span id="computer-score">0</span></p>
+            <p><span id="player-name-display">나</span>의 현재 연승: <span id="user-score">0</span></p>
         </div>
 
         <div class="choices">
-            <button id="rock">주먹</button>
-            <button id="paper">보</button>
-            <button id="scissors">가위</button>
+            <button onclick="playGame('rock')">주먹</button>
+            <button onclick="playGame('paper')">보</button>
+            <button onclick="playGame('scissors')">가위</button>
         </div>
 
         <div id="result">
             <h2 id="result-text">버튼을 눌러 게임을 시작하세요!</h2>
         </div>
 
-        <hr> <div class="ranking-board">
-            <h3>🌍 전 세계 Top 5 연승 기록</h3>
-            <ul id="global-rankings" style="list-style: none; padding: 0;">
+        <hr> 
+        <div class="ranking-board">
+            <h3>🌍 전 세계 Top 10 연승 기록</h3>
+            <ul id="rankingList" style="list-style: none; padding: 0;">
                 <li>데이터를 불러오는 중...</li>
             </ul>
         </div>
-
-        <div class="ranking-container" style="display: flex; gap: 40px; justify-content: center; margin-top: 20px;">
-            <div class="ranking-board">
-                <h3>👤 나의 연승 기록</h3>
-                <ol id="user-rankings"><li>게임 후 기록됩니다.</li></ol>
-            </div>
-            <div class="ranking-board">
-                <h3>🤖 컴퓨터 연승 기록</h3>
-                <ol id="computer-rankings"><li>기록 없음</li></ol>
-            </div>
-        </div>
     </div>
 
-...
-<script src="config.js"></script>
-<script src="script.js"></script>
- </body>
-</html>
+    <script src="config.js"></script>
+    <script src="script.js"></script>
 </body>
 </html>
