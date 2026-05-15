@@ -14,7 +14,7 @@ window.onload = async function() {
 async function fetchGlobalRankings() {
     try {
         const { data, error } = await _supabase
-            .from('ranking')
+            .from('rankings')
             .select('*')
             .order('score', { ascending: false })
             .limit(10);
@@ -92,7 +92,7 @@ async function uploadScore() {
     
     try {
         const { error } = await _supabase
-            .from('ranking')
+            .from('rankings')
             .insert([{ username: username, score: winStreak }]);
 
         if (error) throw error;
