@@ -264,11 +264,13 @@ async function calculateCircleScore() {
     const scoreDisplay = document.getElementById('score-display');
     const messageDisplay = document.getElementById('message');
 
+    // 1. 중심점 계산 (X, Y 좌표의 평균)
     let sumX = 0, sumY = 0;
     points.forEach(p => { sumX += p.x; sumY += p.y; });
     const centerX = sumX / points.length;
     const centerY = sumY / points.length;
 
+    // 2. 각 점과 중심점 사이의 거리(반지름) 계산 및 평균 반지름 도출
     let totalRadius = 0;
     const distances = points.map(p => {
         const dx = p.x - centerX;
@@ -284,30 +286,50 @@ async function calculateCircleScore() {
         return;
     }
 
+    // 3. 전체적인 모양의 일관성 계산 (표준편차)
     let varianceSum = 0;
     distances.forEach(d => { varianceSum += Math.pow(d - avgRadius, 2); });
     const standardDeviation = Math.sqrt(varianceSum / points.length);
 
+    // 🔥 [새로 추가] 4. 가장 많이 튀어나오거나 들어간 곳(최대 오차) 찾기
+    let maxError = 0;
+    distances.forEach(d => {
+        const currentError = Math.abs(d - avgRadius); // 평균 반지름과 현재 거리의 차이 (절대값)
+        if (currentError > maxError) {
+            maxError = currentError;
+        }
+    });
+
+    // 5. 시작점과 끝점의 벌어진 틈새(Gap) 감점 계산
     const startP = points[0];
     const endP = points[points.length - 1];
     const gap = Math.sqrt(Math.pow(startP.x - endP.x, 2) + Math.pow(startP.y - endP.y, 2));
     
+    // 6. 감점 시스템 계산 적용
     const errorRatio = standardDeviation / avgRadius;
-    let shapeScore = (1 - errorRatio * 2) * 100;
-    const gapPenalty = (gap / avgRadius) * 25; 
+    let shapeScore = (1 - errorRatio * 2) * 100; // 전체적인 찌그러짐 점수 (기본 100점 만점 페널티)
     
-    let finalScore = shapeScore - gapPenalty;
-    finalScore = Math.max(0, Math.min(100, finalScore));
-    finalScore = Math.round(finalScore * 10) / 10;
+    const gapPenalty = (gap / avgRadius) * 25;   // 선이 안 맞물린 벌어진 틈 감점
+    
+    // 🔥 [새로 추가] 최대 오차에 의한 감점 (평균 반지름 대비 최대 오차 비율의 40%만큼 추가 페널티)
+    const maxErrorRatio = maxError / avgRadius;
+    const maxErrorPenalty = maxErrorRatio * 40; 
+    
+    // 최종 점수 조립
+    let finalScore = shapeScore - gapPenalty - maxErrorPenalty;
+    finalScore = Math.max(0, Math.min(100, finalScore)); // 0점~100점 사이로 고정
+    finalScore = Math.round(finalScore * 10) / 10;       // 소수점 첫째짜리까지 반올림
 
+    // 7. 화면에 점수 연출 출력
     scoreDisplay.innerText = `${finalScore}%`;
     scoreDisplay.style.transform = 'scale(1.2)';
     setTimeout(() => { scoreDisplay.style.transform = 'scale(1)'; }, 200);
 
-    // 🌟 [핵심 변경] 메모리에 미리 로드된 evaluationMents 배열에서 내 점수에 딱 맞는 멘트 즉시 탐색!
+    // 8. 미리 불러와 둔 JSON 멘트와 매칭
     const match = evaluationMents.find(m => finalScore <= m.max && finalScore >= m.min);
     messageDisplay.innerText = match ? match.text : "와우! 훌륭한 원입니다!";
 
+    // 9. 데이터베이스 업로드
     await uploadCircleScore(finalScore);
 }
 
