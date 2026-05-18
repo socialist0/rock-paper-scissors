@@ -64,9 +64,11 @@ async function playGame(userChoice) {
     const scoreDisplay = document.getElementById('user-score');
 
     const choiceNames = { 'rock': '✊주먹', 'paper': '✋보', 'scissors': '✌️가위' };
-
-    if (userChoice === computerChoice) {
-        resultText.textContent = `비겼습니다! (컴퓨터: ${choiceNames[computerChoice]})`;
+if (userChoice === computerChoice) {
+        // 💡 맨 위 비기기 조건에 우리가 원하던 '연승 유지' 문구를 바로 넣어줍니다!
+        resultText.textContent = `비겼습니다! 🤝 연승이 유지됩니다. (컴퓨터: ${choiceNames[computerChoice]})`;
+        scoreDisplay.textContent = winStreak; // 연승 유지 표시
+        
     } else if (
         (userChoice === 'rock' && computerChoice === 'scissors') ||
         (userChoice === 'paper' && computerChoice === 'rock') ||
@@ -75,7 +77,9 @@ async function playGame(userChoice) {
         winStreak++;
         resultText.textContent = `이겼습니다! 🎉 (컴퓨터: ${choiceNames[computerChoice]})`;
         scoreDisplay.textContent = winStreak;
+        
     } else {
+        // 💡 중간에 중복되었던 draw 조건은 지우고 바로 '졌을 때'로 넘어갑니다!
         resultText.textContent = `졌습니다... 💀 (컴퓨터: ${choiceNames[computerChoice]})`;
         // alert(`게임 종료! 최종 연승: ${winStreak}`);
         if (winStreak > 0) {
