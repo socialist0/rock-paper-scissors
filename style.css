@@ -21,8 +21,10 @@ body {
 
 h1 {
     color: #333;
-    margin-bottom: 20px;
-    text-align: center;
+    margin: 20px auto 30px auto; /* 위아래 여백을 주고, 좌우 auto로 무조건 정중앙 정렬 */
+    text-align: center;          /* 글자 자체도 가운데 정렬 */
+    width: 100%;                 /* 화면 가로폭을 다 쓰도록 설정 */
+    max-width: 500px;            /* 게임 영역 전체 폭(500px)과 칼같이 일치시킴 */
 }
 
 /* ==========================================
