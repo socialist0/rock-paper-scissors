@@ -1,54 +1,36 @@
+/* 기본 레이아웃 및 본문 설정 */
+body {
+    display: flex;
+    flex-direction: column; /* 요소를 세로로 배치 */
+    align-items: center;    /* 가로 중앙 정렬 */
+    justify-content: flex-start; /* 위쪽부터 차근차근 배치 */
+    padding-top: 40px;      /* 상단 여유 공간 */
+    min-height: 100vh;
+    margin: 0;
+    background-color: #f0f3f6; /* 부드러운 밝은 회색 배경 */
+    font-family: 'Malgun Gothic', sans-serif;
+    user-select: none;      /* 게임 중 원치 않는 텍스트 드래그 방지 */
+    -webkit-user-select: none;
+}
+
+/* 점수판 및 공통 버튼 디자인 */
 .score-board {
     display: flex;
     justify-content: center;
     gap: 30px;
-    background-color: #f0f0f0;
-    padding: 15px;
+    background-color: #ffffff;
+    padding: 15px 30px;
     border-radius: 10px;
-    margin-top: 20px;
+    margin-top: 15px;
+    box-shadow: 0 4px 6px rgba(0,0,0,0.05);
 }
 
-#user-score, #computer-score {
+#user-score {
     font-weight: bold;
     color: #007bff;
     font-size: 1.5rem;
 }
-body {
-    display: flex;
-    flex-direction: column; /* 세로로 쌓기 */
-    align-items: center;    /* 가로 중앙 정렬 */
-    
-    /* justify-content: center;  <-- 이 줄을 삭제하거나 아래처럼 바꾸세요 */
-    justify-content: flex-start; /* 위쪽(시작점)부터 정렬 */
-    
-    padding-top: 50px;      /* 화면 맨 위에 너무 붙지 않게 여유 공간 살짝 주기 */
-    min-height: 100vh;
-    margin: 0;
-}
-.choices {
-    display: flex;
-    justify-content: center;
-    gap: 15px;
-    margin: 20px 0;
-}
 
-.choices button {
-    padding: 15px 25px;      /* 안쪽 여유 공간을 충분히 줌 */
-    font-size: 20px;         /* 글자 크기 */
-    font-weight: bold;       /* 글자를 두껍게 */
-    color: #333;             /* 글자 색상을 진한 회색으로 명시 */
-    background-color: #fff;  /* 배경색은 흰색 */
-    border: 2px solid #333;  /* 테두리를 진하게 */
-    border-radius: 10px;
-    cursor: pointer;
-    transition: all 0.2s;
-}
-
-/* 마우스를 올렸을 때 효과 */
-.choices button:hover {
-    background-color: #333;
-    color: #fff;             /* 배경이 검어지면 글자는 하얗게 */
-}
 button {
     padding: 10px 25px;
     font-size: 1.1rem;
@@ -57,26 +39,164 @@ button {
     border-radius: 5px;
     background-color: #007bff;
     color: white;
-    transition: background-color 0.2s; /* 마우스 올렸을 때 부드럽게 변화 */
+    transition: background-color 0.2s, transform 0.1s;
 }
 
 button:hover {
-    background-color: #0056b3; /* 마우스 올리면 더 진한 파란색으로 */
+    background-color: #0056b3;
 }
-#result-text {
-    display: inline-block; /* 너비를 먹이기 위해 설정 */
-    min-width: 350px;      /* 가장 긴 문장인 '컴퓨터가 승리...'를 수용할 정도의 너비 */
-    text-align: center;    /* 글자를 가운데 정렬 */
-    margin: 10px 0;
-    white-space: nowrap;   /* 글자가 길어도 줄바꿈 되지 않게 고정 */
-    #result-text {
-    /* 1. 자바스크립트의 줄바꿈(\n 이나 <br>)을 브라우저가 정직하게 줄바꿈으로 인식하게 만듭니다. */
-    white-space: pre-line; 
 
-    /* 2. 혹시 가로 정렬(flex) 때문에 막혀있다면, 아래로 쌓이도록 세로 방향으로 틀어줍니다. */
-    flex-direction: column; 
-    
-    /* (선택) 글자 정렬이 왼쪽으로 쏠리면 center를 넣어 가운데로 맞춰줍니다. */
-    text-align: center; 
+button:active {
+    transform: scale(0.98);
 }
+
+/* ================= ✨ 1. 상단 내비게이션 탭 메뉴 디자인 ✨ ================= */
+.tab-menu {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin: 20px 0 25px 0;
+    background-color: #e4e8ee;
+    padding: 6px;
+    border-radius: 30px;
+    width: 100%;
+    max-width: 400px;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px 20px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background-color: transparent;
+    color: #555;
+    border-radius: 25px;
+    transition: all 0.3s ease;
+}
+
+.tab-btn:hover {
+    background-color: rgba(255, 255, 255, 0.4);
+    color: #000;
+}
+
+/* 현재 선택된 활성화 탭 스타일 */
+.tab-btn.active {
+    background-color: #ffffff;
+    color: #007bff;
+    box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+}
+
+/* 게임 콘텐츠 박스 공통 공백 */
+.game-content {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ================= ✌️ 2. 가위바위보 게임 영역 디자인 ✊ ================= */
+.choices {
+    display: flex;
+    justify-content: center;
+    gap: 15px;
+    margin: 20px 0;
+}
+
+.choices button {
+    padding: 15px 25px;
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+    background-color: #fff;
+    border: 2px solid #333;
+    border-radius: 10px;
+}
+
+.choices button:hover {
+    background-color: #333;
+    color: #fff;
+}
+
+#result-text {
+    display: inline-block;
+    min-width: 350px;
+    text-align: center;
+    margin: 15px 0;
+    white-space: pre-line; /* <br> 태그 줄바꿈 정직하게 인식 */
+}
+
+/* ================= ⭕ 3. 원 그리기 게임 영역 디자인 🎨 ================= */
+#ui-container {
+    text-align: center;
+    margin-bottom: 15px;
+}
+
+#score-display {
+    font-size: 3.5rem;
+    font-weight: bold;
+    color: #28a745; /* 원 그리기는 싱그러운 초록/연두 감성 */
+    text-shadow: 1px 1px 2px rgba(0,0,0,0.05);
+    margin: 5px 0;
+    transition: transform 0.2s; /* 팅기는 애니메이션용 */
+}
+
+#message {
+    font-size: 1.1rem;
+    color: #666;
+    min-height: 27px;
+}
+
+/* 원 그리기용 칠판(캔버스) */
+canvas {
+    background-color: #ffffff;
+    box-shadow: 0 10px 30px rgba(0,0,0,0.08);
+    border-radius: 15px;
+    cursor: crosshair; /* 십자가 모양 마우스 커서 */
+    touch-action: none; /* 모바일/태블릿 터치 시 화면 스크롤 방지 */
+}
+
+/* 🌍 공통 랭킹 보드 디자인 스타일 */
+.ranking-board {
+    background-color: #ffffff;
+    padding: 20px 40px;
+    border-radius: 12px;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+    width: 100%;
+    max-width: 500px;
+    margin-top: 20px;
+    margin-bottom: 40px;
+}
+
+.ranking-board h3 {
+    margin-top: 0;
+    border-bottom: 2px solid #f0f0f0;
+    padding-bottom: 10px;
+    color: #333;
+    text-align: center;
+}
+
+.ranking-list {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+}
+
+.ranking-list li {
+    padding: 10px 0;
+    border-bottom: 1px dashed #eee;
+    font-size: 1.05rem;
+    color: #444;
+}
+
+.ranking-list li:last-child {
+    border-bottom: none;
+}
+
+hr {
+    width: 100%;
+    max-width: 600px;
+    border: 0;
+    height: 1px;
+    background: #ddd;
+    margin: 30px 0;
 }
