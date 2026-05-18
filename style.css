@@ -1,59 +1,255 @@
 /* ==========================================
-   🔑 닉네임 입력 영역 모바일 터치 및 높이 최적화
+   🎨 1. 전역 스타일 및 기본 리셋 (모바일 방어)
    ========================================== */
+* {
+    box-sizing: border-box; /* 패딩 때문에 가로가 터지는 것을 완벽 방어 */
+}
 
-/* 1. 인풋창과 버튼을 감싸는 박스를 가로로 예쁘게 정렬 */
+body {
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    background-color: #f4f7f6;
+    margin: 0;
+    padding: 20px 15px;
+    display: flex;
+    flex-direction: column;
+    align-items: center; /* 전체 요소를 가로축 기준 정중앙 정렬 */
+    min-height: 100vh;
+    width: 100%;
+    max-width: 100vw;
+    overflow-x: hidden; /* 모바일 가로 스크롤 절대 방지 */
+}
+
+h1 {
+    color: #333;
+    margin-bottom: 20px;
+    text-align: center;
+}
+
+/* ==========================================
+   🔑 2. 닉네임 입력 영역 (정중앙 정렬 및 터치 버그 수정)
+   ========================================== */
 #user-setup {
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 8px;            /* 인풋창과 버튼 사이의 간격 */
+    gap: 10px;           /* 인풋창과 버튼 사이의 간격 */
     width: 100%;
-    max-width: 400px;    /* 모바일 화면에서 너무 넓어지지 않게 방어 */
-    margin: 20px auto;
-    padding: 0 10px;
+    max-width: 450px;    /* 너무 퍼지지 않는 깔끔한 폭 */
+    margin: 40px auto;   /* 상하 여백을 주고 좌우 auto로 확실하게 정중앙 배치 */
+    padding: 0;
 }
 
-/* 2. 닉네임 입력창 스타일 수정 */
+/* 닉네임 입력창 - 기본 사각형 감성을 살리고 터치 이동 버그 제거 */
 #username-input {
-    flex: 2;             /* 입력창이 버튼보다 더 넓은 공간을 차지하도록 설정 */
-    height: 48px;        /* 🌟 모바일에서 터치하기 가장 좋은 표준 높이(48px) */
+    flex: 2;             /* 입력창이 버튼보다 더 넓게 확장 */
+    height: 48px;        /* 버튼과 소수점까지 일치하는 표준 높이 */
     padding: 0 15px;
     border: 2px solid #ccc;
     border-radius: 8px;
-    
-    /* 🔥 화면 움직임 방지 핵심 포인트! */
-    font-size: 16px;     /* 🌟 중요: 16px 이상이어야 모바일 브라우저가 화면을 강제 확대(이동)하지 않습니다. */
     background-color: #fff;
     color: #333;
-    outline: none;       /* 터치 시 불필요한 기본 테두리 제거 */
+    
+    /* 🔥 [가장 중요] 화면 줌인/이동 현상을 원천 차단하는 모바일 마법의 16px */
+    font-size: 16px;     
+    
+    outline: none;       
     box-sizing: border-box;
 }
 
-/* 입력창에 포커스가 잡혔을 때 테두리를 예쁘게 강조 */
+/* 입력창에 포커스가 잡혔을 때의 테두리 하이라이트 */
 #username-input:focus {
     border-color: #28a745;
 }
 
-/* 3. 시작하기 버튼 스타일 수정 (입력창과 완벽하게 매칭) */
+/* 시작하기 버튼 */
 #user-setup button {
-    flex: 1;             /* 버튼 너비 설정 */
-    height: 48px;        /* 🌟 입력창과 소수점 하나 안 틀리고 완벽하게 똑같은 높이 */
-    padding: 0 10px;
+    flex: 1;             /* 버튼 너비 비율 */
+    height: 48px;        /* 입력창과 100% 일치하는 높이 */
+    padding: 0 15px;
     border: none;
     border-radius: 8px;
-    background-color: #28a745;
+    background-color: #28a745; /* 산뜻한 초록색 포인트 메인 컬러 */
     color: white;
-    
-    font-size: 16px;     /* 버튼 글자 크기도 통일 */
+    font-size: 16px;
     font-weight: bold;
     cursor: pointer;
-    white-space: nowrap; /* 모바일에서 '시작하기' 글자가 줄바꿈되어 깨지는 것 방지 */
+    white-space: nowrap; /* 모바일에서 글자가 줄바꿈되어 깨지는 것 방지 */
     box-sizing: border-box;
     transition: background-color 0.2s;
 }
 
-/* 버튼 눌렀을 때 반응 */
 #user-setup button:active {
     background-color: #1e7e34;
+}
+
+/* ==========================================
+   🕹️ 3. 게임 레이아웃 및 탭 메뉴
+   ========================================== */
+#game-area {
+    width: 100%;
+    max-width: 500px;    /* PC 환경에서도 눈이 편안한 최대 폭 제한 */
+    margin: 0 auto;      /* 게임 영역 전체 정중앙 정렬 */
+    text-align: center;
+}
+
+.tab-menu {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.tab-btn {
+    flex: 1;
+    padding: 12px;
+    font-size: 1rem;
+    font-weight: bold;
+    border: none;
+    border-radius: 8px;
+    background-color: #e0e0e0;
+    color: #555;
+    cursor: pointer;
+    transition: all 0.2s;
+}
+
+.tab-btn.active {
+    background-color: #007bff;
+    color: white;
+}
+
+.game-content {
+    background: white;
+    padding: 20px;
+    border-radius: 12px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+/* ==========================================
+   👊 4. 게임 1: 가위바위보 스타일
+   ========================================== */
+.score-board {
+    font-size: 1.2rem;
+    margin-bottom: 15px;
+}
+
+.choices {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    width: 100%;
+}
+
+.choices button {
+    flex: 1;
+    padding: 12px 5px;
+    font-size: 1rem;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    background-color: #f8f9fa;
+    cursor: pointer;
+    white-space: nowrap;
+    transition: background-color 0.2s;
+}
+
+.choices button:hover {
+    background-color: #e2e6ea;
+}
+
+#result {
+    margin-top: 20px;
+    min-height: 60px;
+}
+
+#result-text {
+    font-size: 1.1rem;
+    color: #444;
+    line-height: 1.4;
+}
+
+/* ==========================================
+   ⭕ 5. 게임 2: 원 그리기 캔버스 및 UI 스타일
+   ========================================== */
+#ui-container {
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+#score-display {
+    font-size: 3rem;
+    font-weight: bold;
+    color: #28a745;
+    margin: 10px 0;
+    transition: transform 0.2s ease-in-out;
+}
+
+#message {
+    font-size: 1rem;
+    color: #666;
+    min-height: 24px;
+}
+
+#drawCanvas {
+    display: block;
+    width: 100% !important;  /* 부모 요소 가로폭에 맞춰 자동 조절 */
+    max-width: 500px;
+    height: auto !important; /* 비율 강제 유지 */
+    background-color: #ffffff;
+    border: 2px solid #ddd;
+    border-radius: 12px;
+    margin: 15px auto;
+    cursor: crosshair;
+    
+    /* 🔥 [핵심] 모바일 터치 드로잉 시 화면 전체가 출렁이며 스크롤 되는 현상 차단 */
+    touch-action: none;      
+}
+
+/* ==========================================
+   🌍 6. 공통 명예의 전당 (랭킹 보드) 스타일
+   ========================================== */
+hr {
+    width: 100%;
+    border: 0;
+    height: 1px;
+    background: #eee;
+    margin: 25px 0;
+}
+
+.ranking-board {
+    width: 100%;
+    text-align: left;
+}
+
+.ranking-board h3 {
+    margin-top: 0;
+    font-size: 1.1rem;
+    color: #333;
+    border-left: 4px solid #007bff;
+    padding-left: 8px;
+}
+
+.ranking-list {
+    list-style: none;
+    padding: 0;
+    margin: 10px 0 0 0;
+}
+
+.ranking-list li {
+    padding: 10px 8px;
+    border-bottom: 1px solid #f0f0f0;
+    font-size: 0.95rem;
+    color: #444;
+}
+
+.ranking-list li:last-child {
+    border-bottom: none;
+}
+
+.ranking-list li span {
+    font-weight: bold;
+    color: #007bff;
 }
