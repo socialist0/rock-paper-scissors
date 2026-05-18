@@ -77,7 +77,7 @@ async function playGame(userChoice) {
         scoreDisplay.textContent = winStreak;
     } else {
         resultText.textContent = `졌습니다... 💀 (컴퓨터: ${choiceNames[computerChoice]})`;
-        alert(`게임 종료! 최종 연승: ${winStreak}`);
+        // alert(`게임 종료! 최종 연승: ${winStreak}`);
         if (winStreak > 0) {
             await uploadScore(); // 0승이 아닐 때만 등록
         }
