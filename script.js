@@ -1,28 +1,36 @@
 // ==========================================
-// 0. Supabase 환경변수 직접 주입 (캐시 및 주소 오타 완전 해결)
+// 0. Supabase 환경변수 직접 주입
 // ==========================================
 const supabaseUrl = 'https://zqocsmfeigllzqladkqj.supabase.co'; 
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpxb2NzbWZlaWdsbHpxbGFka3FqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODcxNzYsImV4cCI6MjA5NDI2MzE3Nn0.RC6XmK9zSaX5BnXYz_-rUFu2YMOq4_pOw7qDPELdnIk';
 
-// 전역 변수 _supabase 생성
-window._supabase = supabase.createClient(supabaseUrl, supabaseKey);
+function initSupabase() {
+    if (window._supabase) return true;
+    if (typeof supabase !== 'undefined') {
+        window._supabase = supabase.createClient(supabaseUrl, supabaseKey);
+        return true;
+    }
+    return false;
+}
 
 // ==========================================
 // 1. 초기 설정 및 글로벌 변수
 // ==========================================
 let currentUsername = "";
-let rpsStreak = 0; // 가위바위보 연승 기록
+let rpsStreak = 0; 
+let evaluationMents = []; // 🌟 ment.json에서 다운로드한 멘트가 임시 저장될 배열 공간 (렉 방지용 캐시)
 
-// 원 그리기 게임용 변수들
 const canvas = document.getElementById('drawCanvas');
 let ctx = null;
 if (canvas) ctx = canvas.getContext('2d');
 
 let isDrawing = false;
-let points = []; // 사용자가 그린 점들의 좌표 배열
+let points = []; 
 
-// 페이지가 로드되면 랭킹보드들을 먼저 가져옵니다.
-window.addEventListener('DOMContentLoaded', () => {
+// 페이지가 로드되면 실행되는 초기화 이벤트
+window.addEventListener('DOMContentLoaded', async () => {
+    initSupabase();
+    await loadMentsFromFile(); // 🌟 렉이 전혀 없도록 켜지자마자 멘트 파일 미리 로딩!
     fetchGlobalRankings();
     fetchCircleRankings();
     if (canvas) resizeCanvas();
@@ -34,6 +42,21 @@ window.addEventListener('resize', () => {
     }
 });
 
+// 🌟 외부 ment.json 파일을 비동기로 가져와 메모리에 올려두는 안전한 함수
+async function loadMentsFromFile() {
+    try {
+        const response = await fetch('ment.json');
+        evaluationMents = await response.json();
+    } catch (err) {
+        console.error("멘트 파일 로드 실패, 기본값으로 대체합니다:", err);
+        // 혹시나 파일 로드 실패 시 작동할 비상용 최소 데이터 보루
+        evaluationMents = [
+            {max: 100, min: 80, text: "와우, 멋지고 완벽한 동그라미입니다! 👍"},
+            {max: 79, min: 40, text: "제법 원 모양을 갖추었네요! 🙂"},
+            {max: 39, min: 0, text: "찌그러진 감자 발견! 다시 그려봐요! 🥔"}
+        ];
+    }
+}
 
 // ==========================================
 // 2. 닉네임 로그인 및 게임 선택 탭 시스템
@@ -50,15 +73,12 @@ function saveUsername() {
     currentUsername = username;
     document.getElementById('display-username').innerText = currentUsername;
     
-    // 로그인 창 숨기고 게임 영역 보여주기
     document.getElementById('user-setup').style.display = 'none';
     document.getElementById('game-area').style.display = 'block';
 
-    // 원 그리기 캔버스 크기 최종 맞춤
     setTimeout(resizeCanvas, 50);
 }
 
-// 가위바위보 <-> 원 그리기 탭 전환 함수
 function switchGame(gameType) {
     const rpsContent = document.getElementById('content-rps');
     const circleContent = document.getElementById('content-circle');
@@ -79,9 +99,8 @@ function switchGame(gameType) {
     }
 }
 
-
 // ==========================================
-// 3. 게임 1: 가위바위보 로직 & Supabase 연동
+// 3. 게임 1: 가위바위보 로직
 // ==========================================
 async function playGame(userChoice) {
     if (!currentUsername) {
@@ -91,7 +110,6 @@ async function playGame(userChoice) {
 
     const choices = ['rock', 'paper', 'scissors'];
     const computerChoice = choices[Math.floor(Math.random() * 3)];
-
     const koreanChoices = { rock: '👊 주먹', paper: '🖐️ 보', scissors: '✌️ 가위' };
     let result = '';
 
@@ -118,6 +136,7 @@ async function playGame(userChoice) {
 }
 
 async function uploadRpsScore(score) {
+    if (!initSupabase()) return;
     try {
         const { data, error } = await _supabase
             .from('rankings')
@@ -131,6 +150,7 @@ async function uploadRpsScore(score) {
 }
 
 async function fetchGlobalRankings() {
+    if (!initSupabase()) return;
     try {
         const { data, error } = await _supabase
             .from('rankings')
@@ -166,9 +186,8 @@ async function fetchGlobalRankings() {
     }
 }
 
-
 // ==========================================
-// 4. 게임 2: 원 그리기 로직 & Supabase 연동
+// 4. 게임 2: 원 그리기 로직 (20단계 멘트 시스템 내장)
 // ==========================================
 function resizeCanvas() {
     if (!canvas) return;
@@ -285,27 +304,15 @@ async function calculateCircleScore() {
     scoreDisplay.style.transform = 'scale(1.2)';
     setTimeout(() => { scoreDisplay.style.transform = 'scale(1)'; }, 200);
 
-    if (finalScore >= 90) {
-        messageDisplay.innerText = "이것은 다빈치의 환생인가요? 대단합니다! 🎉";
-    } else if (finalScore >= 85) {
-        messageDisplay.innerText = "이 정도로 만족할 수 없죠! 👍";
-    } else if (finalScore >= 75) {
-        messageDisplay.innerText = "사과같은 내 얼굴 예쁘기도 하지요! 👍";
-    } else if (finalScore >= 50) {
-        messageDisplay.innerText = "호박같은 내얼굴 밉기도 하지요. 🙂";
-    } else if (finalScore >= 40) {
-        messageDisplay.innerText = "동그라미라기보단 타원에 가깝군요. 🙂";
-    } else if (finalScore >= 20) {
-        messageDisplay.innerText = "하기 싫은 티를 내시네요 꿂밤입니다. 🙂";
-    } else {
-        messageDisplay.innerText = "찌그러진 감자 발견! 🥔 다시 그려봐요!";
-    }
+    // 🌟 [핵심 변경] 메모리에 미리 로드된 evaluationMents 배열에서 내 점수에 딱 맞는 멘트 즉시 탐색!
+    const match = evaluationMents.find(m => finalScore <= m.max && finalScore >= m.min);
+    messageDisplay.innerText = match ? match.text : "와우! 훌륭한 원입니다!";
 
-    // ⚠️ Supabase 테이블 이름에 따라 알맞게 전송 (s 유무 확인)
     await uploadCircleScore(finalScore);
 }
 
 async function uploadCircleScore(score) {
+    if (!initSupabase()) return;
     try {
         const { data, error } = await _supabase
             .from('circle_rankings') 
@@ -319,6 +326,7 @@ async function uploadCircleScore(score) {
 }
 
 async function fetchCircleRankings() {
+    if (!initSupabase()) return;
     try {
         const { data, error } = await _supabase
             .from('circle_rankings')
