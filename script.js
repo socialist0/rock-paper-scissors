@@ -73,9 +73,10 @@ async function playGame(userChoice) {
 
     const choiceNames = { 'rock': '✊주먹', 'paper': '✋보', 'scissors': '✌️가위' };
 if (userChoice === computerChoice) {
-        // 💡 textContent 대신 innerHTML 을 쓰고, \n 대신 <br> 태그를 넣었습니다!
+        // CSS가 줄바꿈을 허용하므로 <br> 태그가 마법처럼 먹히게 됩니다!
         resultText.innerHTML = `비겼습니다! 🤝<br>연승이 유지됩니다. (컴퓨터: ${choiceNames[computerChoice]})`;
-        scoreDisplay.textContent = winStreak;
+        scoreDisplay.textContent = winStreak; 
+    }
                 // 연승 유지 표시
         
     } else if (
