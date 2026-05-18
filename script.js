@@ -290,11 +290,13 @@ async function calculateCircleScore() {
     } else if (finalScore >= 85) {
         messageDisplay.innerText = "이 정도로 만족할 수 없죠! 👍";
     } else if (finalScore >= 75) {
-        messageDisplay.innerText = "중학생이 그린 수준이군요! 👍";
+        messageDisplay.innerText = "사과같은 내 얼굴 예쁘기도 하지요! 👍";
     } else if (finalScore >= 50) {
-        messageDisplay.innerText = "본인 얼굴을 그리신건가요 타원에 가깝군요. 🙂";
+        messageDisplay.innerText = "호박같은 내얼굴 밉기도 하지요. 🙂";
     } else if (finalScore >= 40) {
         messageDisplay.innerText = "동그라미라기보단 타원에 가깝군요. 🙂";
+    } else if (finalScore >= 20) {
+        messageDisplay.innerText = "하기 싫은 티를 내시네요 꿂밤입니다. 🙂";
     } else {
         messageDisplay.innerText = "찌그러진 감자 발견! 🥔 다시 그려봐요!";
     }
