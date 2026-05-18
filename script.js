@@ -73,10 +73,10 @@ async function playGame(userChoice) {
 
     const choiceNames = { 'rock': '✊주먹', 'paper': '✋보', 'scissors': '✌️가위' };
 if (userChoice === computerChoice) {
-        // 💡 맨 위 비기기 조건에 우리가 원하던 '연승 유지' 문구를 바로 넣어줍니다!
-resultText.textContent = `비겼습니다! 🤝\n연승이 유지됩니다. (컴퓨터: ${choiceNames[computerChoice]})`;
+        // 💡 textContent 대신 innerHTML 을 쓰고, \n 대신 <br> 태그를 넣었습니다!
+        resultText.innerHTML = `비겼습니다! 🤝<br>연승이 유지됩니다. (컴퓨터: ${choiceNames[computerChoice]})`;
         scoreDisplay.textContent = winStreak;
-                scoreDisplay.textContent = winStreak; // 연승 유지 표시
+                // 연승 유지 표시
         
     } else if (
         (userChoice === 'rock' && computerChoice === 'scissors') ||

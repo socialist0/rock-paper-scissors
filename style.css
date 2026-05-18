@@ -69,4 +69,14 @@ button:hover {
     text-align: center;    /* 글자를 가운데 정렬 */
     margin: 10px 0;
     white-space: nowrap;   /* 글자가 길어도 줄바꿈 되지 않게 고정 */
+    #result-text {
+    /* 1. 자바스크립트의 줄바꿈(\n 이나 <br>)을 브라우저가 정직하게 줄바꿈으로 인식하게 만듭니다. */
+    white-space: pre-line; 
+
+    /* 2. 혹시 가로 정렬(flex) 때문에 막혀있다면, 아래로 쌓이도록 세로 방향으로 틀어줍니다. */
+    flex-direction: column; 
+    
+    /* (선택) 글자 정렬이 왼쪽으로 쏠리면 center를 넣어 가운데로 맞춰줍니다. */
+    text-align: center; 
+}
 }
