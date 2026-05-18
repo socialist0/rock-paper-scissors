@@ -35,8 +35,18 @@ async function fetchGlobalRankings() {
             const li = document.createElement('li');
             
             // Supabase에서 가져온 날짜/시간 정보를 한국 시간 형식으로 예쁘게 변환
-            const date = new Date(player.created_at);
-            const dateString = `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')} ${String(date.getHours()).padStart(2, '0')}:${String(date.getMinutes()).padStart(2, '0')}:${String(date.getSeconds()).padStart(2, '0')}`;
+           //  Supabase의 UTC 시간을 한국 시간 형식으로 알아서 계산해 주는 마법의 코드입니다.
+const date = new Date(player.created_at);
+const dateString = date.toLocaleString('ko-KR', {
+    timeZone: 'Asia/Seoul',
+    year: 'numeric',
+    month: '2-digit',
+    day: '2-digit',
+    hour: '2-digit',
+    minute: '2-digit',
+    second: '2-digit',
+    hour12: false // 오전/오후 대신 24시간 형식으로 보여줍니다.
+});
 
             li.textContent = `${index + 1}위: ${player.username} - ${player.score}연승 (${dateString})`;
             rankingList.appendChild(li);
