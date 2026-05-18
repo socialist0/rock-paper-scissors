@@ -1,4 +1,19 @@
 // ==========================================
+// 0. Supabase 환경변수 직접 주입 (캐시 박살용)
+// ==========================================
+const supabaseUrl = 'https://zqocsmfeigllzqladkqj.supabase.co'; // 🌟 진짜 ID 적용! (lyzq 아님)
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpxb2NzbWZlaWdsbHpxbGFka3FqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODcxNzYsImV4cCI6MjA5NDI2MzE3Nn0.RC6XmK9zSaX5BnXYz_-rUFu2YMOq4_pOw7qDPELdnIk';
+
+// 전역 변수 _supabase를 여기서 직접 만들어버립니다.
+window._supabase = supabase.createClient(supabaseUrl, supabaseKey);
+
+
+// ==========================================
+// 1. 초기 설정 및 글로벌 변수 (여기서부터 기존 코드 시작...)
+// ==========================================
+let currentUsername = "";
+// ... 아래 기존 코드는 그대로 두시면 됩니다!
+// ==========================================
 // 1. 초기 설정 및 글로벌 변수
 // ==========================================
 let currentUsername = "";
