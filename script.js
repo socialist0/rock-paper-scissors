@@ -108,6 +108,9 @@ async function playGame(userChoice) {
         return;
     }
 
+    // ⏳ [보안 교체] 가위바위보 전용 1초 연속 도배 차단 필터 가동
+    if (!canSubmitRpsScore()) return;
+
     const choices = ['rock', 'paper', 'scissors'];
     const computerChoice = choices[Math.floor(Math.random() * 3)];
     const koreanChoices = { rock: '👊 주먹', paper: '🖐️ 보', scissors: '✌️ 가위' };
@@ -137,12 +140,30 @@ async function playGame(userChoice) {
 
 async function uploadRpsScore(score) {
     if (!initSupabase()) return;
+
+    // 🔒 [보안 추가] 치트 수치 1차 필터링 (가위바위보 비정상적 연승 차단)
+    if (score < 0 || score > 100) {
+        alert("비정상적인 스코어 조작이 감지되었습니다.");
+        return;
+    }
+
     try {
+        // 🔒 [보안 추가] 무결성 검증용 해시 토큰 생성
+        const verificationHash = await generateVerificationHash(currentUsername, score);
+
+        // Supabase 서버로 전송할 때 데이터 위변조 방지 토큰 탑재
         const { data, error } = await _supabase
             .from('rankings')
-            .insert([{ username: currentUsername, score: score }]);
+            .insert([{ 
+                username: currentUsername, 
+                score: score,
+                verification_token: verificationHash // 👈 추가된 보안 컬럼 반영
+            }]);
         
         if (error) throw error;
+
+        // ⏳ [보안 교체] 제출 성공 시 가위바위보 전용 1초 디바이스 타임 락 작동
+        lockRpsSubmitTime();
         fetchGlobalRankings();
     } catch (err) {
         console.error("가위바위보 점수 업로드 실패:", err);
@@ -257,6 +278,9 @@ function stopDrawing() {
         return;
     }
 
+    // ⏳ [보안 교체] 원 그리기 전용 20초 연속 도배 차단 필터 가동
+    if (!canSubmitCircleScore()) return;
+
     calculateCircleScore();
 }
 
@@ -335,12 +359,29 @@ async function calculateCircleScore() {
 
 async function uploadCircleScore(score) {
     if (!initSupabase()) return;
+
+    // 🔒 [보안 추가] 치트 수치 1차 필터링 (원 그리기 점수 한계선 차단)
+    if (score < 0 || score > 100) {
+        alert("비정상적인 스코어 조작이 감지되었습니다.");
+        return;
+    }
+
     try {
+        // 🔒 [보안 추가] 무결성 검증용 해시 토큰 생성
+        const verificationHash = await generateVerificationHash(currentUsername, score);
+
         const { data, error } = await _supabase
             .from('circle_rankings') 
-            .insert([{ username: currentUsername, score: score }]);
+            .insert([{ 
+                username: currentUsername, 
+                score: score,
+                verification_token: verificationHash // 👈 추가된 보안 컬럼 반영
+            }]);
         
         if (error) throw error;
+
+        // ⏳ [보안 교체] 제출 성공 시 원 그리기 전용 20초 디바이스 타임 락 작동
+        lockCircleSubmitTime();
         fetchCircleRankings();
     } catch (err) {
         console.error("원 그리기 점수 업로드 실패:", err);
