@@ -35,7 +35,7 @@ function canSubmitCircleScore() {
   const lastSubmitTime = localStorage.getItem('last_submit_time_circle');
   if (!lastSubmitTime) return true;
 
-  const cooldownTime = 20 * 1000; // ⏱️ 원 그리기는 20초 제한
+  const cooldownTime = 3 * 1000; // ⏱️ 원 그리기는 3초 제한
   const timePassed = Date.now() - parseInt(lastSubmitTime);
 
   if (timePassed < cooldownTime) {
