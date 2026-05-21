@@ -13,19 +13,31 @@ async function playGame(userChoice) {
     let result = '';
 
     if (userChoice === computerChoice) {
-        result = '무승부입니다! 🤝';
+        // [수정] 무승부가 되어 연승이 종료되었을 때, 기존에 쌓은 기록이 있다면 저장합니다.
+        if (rpsStreak > 0) {
+            await uploadRpsScore(rpsStreak);
+        }
+        result = `무승부입니다! 🤝\n최종 기록: ${rpsStreak}연승`;
+        rpsStreak = 0; // 연승 초기화
+        document.getElementById('user-score').innerText = rpsStreak;
+
     } else if (
         (userChoice === 'rock' && computerChoice === 'scissors') ||
         (userChoice === 'paper' && computerChoice === 'rock') ||
         (userChoice === 'scissors' && computerChoice === 'paper')
     ) {
+        // [수정] 이겼을 때는 DB에 바로 전송하지 않고, 브라우저 화면상의 연승 카운트만 계속 올립니다.
         rpsStreak++;
         result = `이겼습니다! 🎉\n현재 ${rpsStreak}연승 중!`;
         document.getElementById('user-score').innerText = rpsStreak;
-        await uploadRpsScore(rpsStreak);
+        
     } else {
+        // [수정] 컴퓨터에게 져서 연승이 마감되었을 때, 기존 기록이 있다면 단 한 번 최종 연승 점수를 저장합니다.
+        if (rpsStreak > 0) {
+            await uploadRpsScore(rpsStreak);
+        }
         result = `졌습니다... 😭\n최종 기록: ${rpsStreak}연승\n\n다시 도전해 보세요!`;
-        rpsStreak = 0;
+        rpsStreak = 0; // 연승 초기화
         document.getElementById('user-score').innerText = rpsStreak;
     }
 
