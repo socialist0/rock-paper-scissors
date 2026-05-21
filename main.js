@@ -16,15 +16,33 @@ function initSupabase() {
     return false;
 }
 
-// 🌟 모든 파일(game_circle.js 등)이 브라우저에 전부 로드된 직후 안전하게 실행
+// ==========================================
+// main.js 파일의 초기화 이벤트 부분을 아래로 교체해 주세요!
+// ==========================================
+
 window.addEventListener('load', async () => {
+    // 1. Supabase 백엔드 먼저 연결
     initSupabase();
+    
+    // 2. ment.json 멘트 파일 로드
     await loadMentsFromFile(); 
     
-    // 분리된 파일들의 랭킹 및 캔버스 함수가 존재할 때만 실행
-    if (typeof fetchGlobalRankings === 'function') fetchGlobalRankings();
-    if (typeof fetchCircleRankings === 'function') fetchCircleRankings();
-    if (typeof initCircleCanvas === 'function') initCircleCanvas();
+    // 3. [에러 해결 포인트] 각 함수가 존재하는지 눈으로 확인하고 안전하게 실행!
+    if (typeof fetchGlobalRankings === 'function') {
+        fetchGlobalRankings();
+    } else {
+        console.log("💡 아직 game_rps.js 로딩 전이거나 함수를 찾을 수 없습니다.");
+    }
+    
+    if (typeof fetchCircleRankings === 'function') {
+        fetchCircleRankings();
+    } else {
+        console.log("💡 아직 game_circle.js 로딩 전이거나 함수를 찾을 수 없습니다.");
+    }
+    
+    if (typeof initCircleCanvas === 'function') {
+        initCircleCanvas();
+    }
 });
 
 // 🌟 외부 ment.json 파일을 가져오는 안전한 함수
