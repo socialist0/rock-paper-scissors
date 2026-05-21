@@ -53,7 +53,7 @@ function stopDrawing() {
     if (!isDrawing) return;
     isDrawing = false;
     if (points.length < 15) { document.getElementById('message').innerText = "너무 짧게 그렸습니다."; return; }
-    if (!canSubmitCircleScore()) return;
+    if (typeof canSubmitCircleScore === 'function' && !canSubmitCircleScore()) return;
     calculateCircleScore();
 }
 
@@ -109,7 +109,7 @@ async function uploadCircleScore(score) {
             username: currentUsername, score: score, verification_token: verificationHash 
         }]);
         if (error) throw error;
-        lockCircleSubmitTime();
+        if (typeof lockCircleSubmitTime === 'function') lockCircleSubmitTime();
         fetchCircleRankings();
     } catch (err) { console.error("원 그리기 업로드 실패:", err); }
 }
