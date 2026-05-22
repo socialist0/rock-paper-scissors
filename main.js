@@ -102,29 +102,38 @@ function switchGame(gameType) {
         if (typeof resizeCanvas === 'function') resizeCanvas();
     }
 }
-// main.js 맨 아래에 추가
-document.getElementById('main-title').addEventListener('click', function() {
-    // 1. 모든 게임 화면(컨텐츠) 영역을 숨깁니다.
-    const contents = document.querySelectorAll('.content');
-    contents.forEach(content => {
-        content.style.display = 'none';
-    });
-
-    // 2. 닉네임 입력 화면(로그인 화면)을 보여줍니다.
-    const loginScreen = document.getElementById('login-screen');
-    if (loginScreen) {
-        loginScreen.style.display = 'block';
-    }
-
-    // 3. 선택 사항: 현재 닉네임 변수를 초기화하여 완전히 처음 상태로 만듭니다.
-    currentUsername = null;
+// main.js 맨 아래의 기존 타이틀 클릭 이벤트를 이 코드로 교체해 주세요.
+window.addEventListener('DOMContentLoaded', () => {
+    const mainTitle = document.getElementById('main-title');
     
-    // 4. 입력창이 있다면 닉네임 입력칸을 비워줍니다.
-    const nicknameInput = document.getElementById('nickname');
-    if (nicknameInput) {
-        nicknameInput.value = '';
-        nicknameInput.focus();
+    // 만약 main-title이라는 ID를 가진 요소가 존재할 때만 이벤트를 겁니다. (에러 방어)
+    if (mainTitle) {
+        mainTitle.addEventListener('click', function() {
+            // 1. 모든 게임 화면(컨텐츠) 영역을 숨깁니다.
+            const contents = document.querySelectorAll('.content');
+            contents.forEach(content => {
+                content.style.display = 'none';
+            });
+
+            // 2. 닉네임 입력 화면(로그인 화면)을 보여줍니다.
+            const loginScreen = document.getElementById('login-screen');
+            if (loginScreen) {
+                loginScreen.style.display = 'block';
+            }
+
+            // 3. 현재 닉네임 변수를 초기화하여 완전히 처음 상태로 만듭니다.
+            currentUsername = null;
+            
+            // 4. 입력창이 있다면 닉네임 입력칸을 비워줍니다.
+            const nicknameInput = document.getElementById('nickname');
+            if (nicknameInput) {
+                nicknameInput.value = '';
+                nicknameInput.focus();
+            }
+            
+            console.log("메인 화면으로 이동했습니다.");
+        });
+    } else {
+        console.warn("경고: HTML에서 'main-title' ID를 가진 요소를 찾을 수 없습니다. index.html의 ID를 확인해 주세요.");
     }
-    
-    console.log("메인 화면으로 이동했습니다.");
 });
