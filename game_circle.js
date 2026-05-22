@@ -41,7 +41,7 @@ function startDrawing(e) {
     const x = e.clientX - rect.left; const y = e.clientY - rect.top;
     points.push({ x, y });
     
-    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = '#28a745';
+    ctx.beginPath(); ctx.moveTo(x, y); ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = 'blue';
 }
 
 function draw(e) {
@@ -101,10 +101,12 @@ async function calculateCircleScore() {
     const match = evaluationMents.find(m => finalScore <= m.max && finalScore >= m.min);
     messageDisplay.innerText = match ? match.text : "훌륭한 원입니다!";
 
+    drawPerfectGuideCircle(centerX, centerY, avgRadius);
+
     // 데이터베이스에 점수 업로드
     await uploadCircleScore(finalScore);
 
-    // 최종 점수가 95% 이상일 때 세션에 비밀 티켓과 점수를 보관하고 suddenwinner.html로 이동합니다.
+    // 최종 점수가 95% 이상일 때 suddenwinner.html로 이동
     if (finalScore >= 95.0) {
         sessionStorage.setItem('circle_celebration_verified', 'true');
         sessionStorage.setItem('circle_celebration_score', finalScore.toString());
@@ -113,6 +115,25 @@ async function calculateCircleScore() {
             window.location.href = `suddenwinner.html?score=${finalScore}`;
         }, 800); 
     }
+}
+
+function drawPerfectGuideCircle(cx, cy, radius) {
+    if (!ctx) return;
+
+    // 1. 중심점에 작은 고정 점 찍기
+    ctx.beginPath();
+    ctx.arc(cx, cy, 4, 0, Math.PI * 2);
+    ctx.fillStyle = '#ff4d4d';
+    ctx.fill();
+
+    // 2. 컴퓨터가 정한 완벽한 원을 '빨간색 점선'으로 겹쳐서 그리기
+    ctx.beginPath();
+    ctx.arc(cx, cy, radius, 0, Math.PI * 2);
+    ctx.lineWidth = 3;
+    ctx.strokeStyle = 'rgba(255, 77, 77, 0.8)'; // 반투명한 빨간색
+    ctx.setLineDash([6, 6]); // 6픽셀 선, 6픽셀 공백의 점선 스타일
+    ctx.stroke();
+    ctx.setLineDash([]); // 다른 선에 영향 주지 않도록 점선 스타일 리셋
 }
 
 async function uploadCircleScore(score) {
@@ -124,11 +145,7 @@ async function uploadCircleScore(score) {
         }]).select();
         
         if (error) throw error;
-        
-        if (data && data.length > 0) {
-            lastUploadedId = data[0].id; 
-        }
-
+        if (data && data.length > 0) { lastUploadedId = data[0].id; }
         if (typeof lockCircleSubmitTime === 'function') lockCircleSubmitTime();
         fetchCircleRankings();
     } catch (err) { console.error("원 그리기 업로드 실패:", err); }
@@ -148,7 +165,6 @@ async function fetchCircleRankings() {
         const circleRankingList = document.getElementById('circleRankingList');
         if (!circleRankingList) return;
         
-        // 기존 리스트 아이템들만 비웁니다.
         circleRankingList.innerHTML = '';
 
         if (data.length === 0) {
@@ -158,7 +174,6 @@ async function fetchCircleRankings() {
             return;
         }
         
-        // 유저들의 랭킹 데이터를 순서대로 채워줍니다.
         data.forEach((player, index) => {
             const dateString = new Date(player.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
             const li = document.createElement('li');
