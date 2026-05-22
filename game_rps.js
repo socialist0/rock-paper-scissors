@@ -14,7 +14,7 @@ async function playGame(userChoice) {
     let result = '';
 
     if (userChoice === computerChoice) {
-        // 비겼을 때: 문구만 출력하고 연승 유지, 서버 업로드 없이 '즉시 함수 종료(return)'
+        // 비겼을 때: 문구만 출력하고 연승 유지, 서버 업로드 없이 즉시 함수 종료
         result = `무승부입니다! 🤝\n현재 ${rpsStreak}연승 유지 중!`;
         document.getElementById('result-text').innerText = 
             `나: ${koreanChoices[userChoice]} vs 컴퓨터: ${koreanChoices[computerChoice]}\n\n${result}`;
@@ -57,7 +57,7 @@ async function uploadRpsScore(score) {
             verificationHash = generateVerificationHash(currentUsername, score);
         }
         
-        // 저장 후 새로 생성된 행의 고유 ID(id)를 가져오도록 .select() 추가
+        // 저장 후 새로 생성된 행의 고유 ID(id)를 가져옵니다.
         const { data, error } = await window._supabase.from('rankings').insert([{ 
             username: currentUsername, 
             score: score, 
@@ -66,9 +66,9 @@ async function uploadRpsScore(score) {
         
         if (error) throw error;
         
-        // 방금 등록된 데이터의 고유 ID를 전역 변수에 보관
+        // 방금 등록된 데이터의 고유 ID를 확실하게 문자열로 변환하여 보관 (타입 불일치 방지)
         if (data && data.length > 0) {
-            lastRpsUploadedId = data[0].id;
+            lastRpsUploadedId = String(data[0].id);
         }
         
         if (typeof lockRpsSubmitTime === 'function') lockRpsSubmitTime();
@@ -81,8 +81,7 @@ async function uploadRpsScore(score) {
 async function fetchGlobalRankings() {
     if (!initSupabase()) return;
     try {
-        // 🌟 [교정] 중복 제거 알고리즘 적용을 위해 대량의 최신 상위 데이터를 먼저 가져옵니다.
-        // 최신순(created_at desc)을 먼저 정렬해서 최신 기록이 배열 위쪽으로 오도록 세팅합니다.
+        // 중복 제거 계산을 위해 전체 데이터를 최신순으로 정렬하여 넉넉히 가져옵니다.
         const { data, error } = await window._supabase
             .from('rankings')
             .select('*')
@@ -100,12 +99,11 @@ async function fetchGlobalRankings() {
             return;
         }
 
-        // 🌟 동일 닉네임 + 동일 점수의 중복을 완전히 제거하고 오직 최신 것 1개만 남기는 필터 로직
+        // 동일 닉네임 + 동일 점수의 중복을 제거하고 오직 최신 것 1개만 남깁니다.
         const uniqueRankings = [];
         const seenPairs = new Set();
 
         for (const player of data) {
-            // 한 유저가 기록한 특정 점수대를 고유 키로 생성 (예: "홍길동_5")
             const uniqueKey = `${player.username}_${player.score}`;
             
             if (!seenPairs.has(uniqueKey)) {
@@ -113,25 +111,29 @@ async function fetchGlobalRankings() {
                 uniqueRankings.push(player);
             }
             
-            // 중복을 제거한 유니크 리스트가 Top 10개가 채워지면 루프 중단
             if (uniqueRankings.length >= 10) break;
         }
         
-        // 🌟 정제된 최종 10개의 유니크 리스트를 화면에 바인딩
+        // 화면에 바인딩 및 하이라이트 검사
         uniqueRankings.forEach((player, index) => {
             const dateString = new Date(player.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
             const li = document.createElement('li');
             
-            // 내 최신 등록 기록과 일치하면 초록색으로 하이라이트 효과 적용
-            if (lastRpsUploadedId && player.id === lastRpsUploadedId) {
+            // 🌟 [교정] 타입 유연성을 위해 형변환 후 대조 처리 (== 사용 또는 양쪽 다 String 변환)
+            const isMyNewScore = lastRpsUploadedId && (String(player.id) === lastRpsUploadedId);
+            
+            if (isMyNewScore) {
                 li.style.backgroundColor = '#e6f4ea'; 
                 li.style.color = '#137333';
                 li.style.fontWeight = 'bold';
                 li.style.borderRadius = '5px';
-                li.style.padding = '4px 8px';
+                li.style.padding = '6px 10px';
+                li.style.margin = '4px 0';
+                li.style.border = '1px solid #max-content'; // 테두리 살짝 추가하여 강조 효과 극대화
                 li.style.transition = 'all 0.5s ease';
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🏆 ${player.score}연승 <span style="font-size:0.85rem; color:#137333; float:right;">(${dateString})</span>`;
             } else {
+                li.style.padding = '4px 8px';
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🏆 ${player.score}연승 <span style="font-size:0.85rem; color:#888; float:right;">(${dateString})</span>`;
             }
             rankingList.appendChild(li);
