@@ -171,13 +171,12 @@ async function fetchCircleRankings() {
                 li.style.padding = '4px 8px';
                 li.style.transition = 'all 0.5s ease';
                 
-                // "(방금 추가됨)" 텍스트 문구가 제거된 깔끔한 하이라이트 형태입니다.
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#137333; float:right;">(${dateString})</span>`;
             } else {
-                li.innerHTML = ` = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#888; float:right;">(${dateString})</span>`;
+                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#888; float:right;">(${dateString})</span>`;
             }
             
             circleRankingList.appendChild(li);
         });
     } catch (err) { console.error("원 랭킹 로드 실패:", err); }
-} // ⬅️ 불필요한 중괄호를 제거하여 완벽하게 닫아주었습니다!
+}
