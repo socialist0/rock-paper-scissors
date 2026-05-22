@@ -12,9 +12,11 @@
     <h1 id="main-title" style="cursor: pointer; user-select: none;">잠시만 혹시...?</h1>
 </header>
     
-    <div id="user-setup">
-        <input type="text" id="username-input" placeholder="닉네임을 입력하세요">
-        <button onclick="saveUsername()">시작하기</button>
+    <div id="login-screen" class="content">
+        <div id="user-setup">
+            <input type="text" id="username-input" placeholder="닉네임을 입력하세요">
+            <button onclick="saveUsername()">시작하기</button>
+        </div>
     </div>
 
     <div id="game-area" style="display: none;">
@@ -25,7 +27,7 @@
             <button id="tab-circle" class="tab-btn" onclick="switchGame('circle')">⭕ 원 그리기</button>
         </div>
 
-        <div id="content-rps" class="game-content">
+        <div id="content-rps" class="game-content content">
             <div class="score-board">
                 <p>나의 현재 연승: <span id="user-score">0</span></p>
             </div>
@@ -49,12 +51,12 @@
             </div>
         </div>
 
-        <div id="content-circle" class="game-content" style="display: none;">
+        <div id="content-circle" class="game-content content" style="display: none;">
             <div id="ui-container">
-<h2 style="font-size: 1.3rem; margin-bottom: 5px;">가장 완벽한 원을 그려보세요!</h2>
-<div style="font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; font-weight: normal; line-height: 1.5;">
-    💡 <strong>95점</strong>을 넘는 경우 깜짝 축하 페이지를 만나실 수 있습니다!
-</div>
+                <h2 style="font-size: 1.3rem; margin-bottom: 5px;">가장 완벽한 원을 그려보세요!</h2>
+                <div style="font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; font-weight: normal; line-height: 1.5;">
+                    💡 <strong>95점</strong>을 넘는 경우 깜짝 축하 페이지를 만나실 수 있습니다!
+                </div>
                 <div id="score-display">0%</div>
                 <div id="message">화면에 마우스나 손가락으로 원을 그리세요.</div>
             </div>
@@ -62,13 +64,14 @@
             <canvas id="drawCanvas"></canvas>
 
             <hr>
-<div class="ranking-board">
+            <div class="ranking-board">
                 <h3>🌍 원 그리기 전 세계 Top 10 명예의 전당</h3>
                 <ul id="circleRankingList" class="ranking-list">
                     <li>데이터를 불러오는 중...</li>
                 </ul>
-            </div> <div class="circle-game-guide" style="margin-top: 35px; font-family: 'Malgun Gothic', sans-serif; color: #2d3748; line-height: 1.7; text-align: left;">
-                
+            </div> 
+            
+            <div class="circle-game-guide" style="margin-top: 35px; font-family: 'Malgun Gothic', sans-serif; color: #2d3748; line-height: 1.7; text-align: left;">
                 <div class="guide-section-casual" style="padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 5px solid #28a745; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
                     <h3 style="margin-top: 0; color: #28a745; display: flex; align-items: center; gap: 8px; font-size: 1.15rem; font-weight: bold;">
                         🎯 High Score를 위한 팁 (일반 규칙)
@@ -125,10 +128,11 @@
                     💡 시스템 임계값: 반지름 20픽셀 이하의 소형 원은 데이터 축적 연산 대상에서 제외되니 크게 그려주세요!
                 </div>
             </div>
+        </div>
 
     </div>
 
-<script src="security.js"></script>
+    <script src="security.js"></script>
     <script src="main.js"></script>
     <script src="game_rps.js"></script>
     <script src="game_circle.js"></script>
