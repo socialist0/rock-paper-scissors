@@ -1,18 +1,29 @@
 // ==========================================
-// 0. Supabase 환경변수 직접 주입
+// 0. 전역 변수 설정 (중복된 supabaseUrl, supabaseKey 완전 제거)
 // ==========================================
-const supabaseUrl = 'https://zqocsmfeigllzqladkqj.supabase.co'; 
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpxb2NzbWZlaWdsbHpxbGFka3FqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODcxNzYsImV4cCI6MjA5NDI2MzE3Nn0.RC6XmK9zSaX5BnXYz_-rUFu2YMOq4_pOw7qDPELdnIk';
-
 let currentUsername = "";
 let evaluationMents = []; // 멘트 저장 배열
 
+/**
+ * 🌟 config.js에서 이미 생성해 둔 window._supabase 객체를 
+ * 개별 게임 스크립트들과 안전하게 동기화해 주는 마스터 함수
+ */
 function initSupabase() {
-    if (window._supabase) return true;
-    if (typeof supabase !== 'undefined') {
+    if (window._supabase) {
+        // 기존 개별 게임 코드들이 '_supabase' 변수를 바로 쓸 수 있도록 전역 스코프 바인딩
+        if (typeof _supabase === 'undefined') {
+            window._supabase = window._supabase;
+        }
+        return true;
+    }
+    
+    // 만약 window._supabase가 없고 config.js의 변수들이 살아있다면 직접 로드 시도
+    if (typeof supabase !== 'undefined' && typeof supabaseUrl !== 'undefined' && typeof supabaseKey !== 'undefined') {
         window._supabase = supabase.createClient(supabaseUrl, supabaseKey);
         return true;
     }
+    
+    console.error("⚠️ [에러] config.js 파일이 누락되었거나 window._supabase 객체를 바인딩할 수 없습니다.");
     return false;
 }
 
@@ -20,7 +31,7 @@ function initSupabase() {
 // 1. 플랫폼 초기화 및 파일 프리로딩 이벤트
 // ==========================================
 window.addEventListener('load', async () => {
-    // 1. Supabase 백엔드 먼저 연결
+    // 1. Supabase 백엔드 커넥션 확보
     initSupabase();
     
     // 2. ment.json 멘트 파일 로드
@@ -29,7 +40,7 @@ window.addEventListener('load', async () => {
     // 3. 닉네임 입력창에 플레이스홀더 바인딩 및 초기화
     initNicknameInput();
     
-    // 4. 각 함수가 존재하는지 확인하고 안전하게 실행
+    // 4. 각 연동 모듈 함수가 메모리에 있는지 검증 후 실시간 탑텐 랭킹 보드 로드
     if (typeof fetchGlobalRankings === 'function') {
         fetchGlobalRankings();
     } else {
@@ -77,8 +88,7 @@ function initNicknameInput() {
 // ==========================================
 
 /**
- * 🌟 문자열의 바이트 길이를 정확하게 계산하는 헬퍼 함수
- * (호이스팅 및 참조 에러를 완전히 방지하기 위해 일반 함수 형태로 명확히 정의)
+ * 문자열의 바이트 길이를 정확하게 계산하는 헬퍼 함수
  */
 function getByteLength(str) {
     return new TextEncoder().encode(str).length;
@@ -96,7 +106,7 @@ function saveUsername() {
         return;
     }
 
-    // 2. 🛡️ 닉네임 16바이트 길이 제한 검증 (참조 에러 해결 완료)
+    // 2. 🛡️ 닉네임 16바이트 길이 제한 검증
     const byteLength = getByteLength(username);
     if (byteLength > 16) {
         alert(`닉네임이 너무 깁니다! (현재: ${byteLength}바이트 / 최대: 16바이트)\n* 영문·숫자는 최대 16자, 한글은 최대 5자까지 가능합니다.`);
