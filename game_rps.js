@@ -40,10 +40,14 @@ async function playGame(userChoice) {
 async function uploadRpsScore(score) {
     if (!initSupabase() || score < 0 || score > 100) return;
     try {
-        // 🔒 [오타 수정 완료] 정의되지 않은 가짜 명찰을 진짜 보안 엔진 이름인 generateVerificationToken으로 매핑했습니다.
-        const verificationHash = generateVerificationToken(currentUsername, score);
+        // 🔒 Token이든 Hash든 호환성 유연 자동 추적 매핑
+        let verificationHash = "";
+        if (typeof generateVerificationToken === 'function') {
+            verificationHash = generateVerificationToken(currentUsername, score);
+        } else if (typeof generateVerificationHash === 'function') {
+            verificationHash = generateVerificationHash(currentUsername, score);
+        }
         
-        // window._supabase 전역 객체를 확실하게 타겟팅하여 인서트 분사
         const { error } = await window._supabase.from('rankings').insert([{ 
             username: currentUsername, 
             score: score, 

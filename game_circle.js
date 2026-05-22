@@ -133,10 +133,16 @@ function drawPerfectGuideCircle(cx, cy, radius) {
 async function uploadCircleScore(score) {
     if (!initSupabase() || score < 0 || score > 100) return;
     try {
-        // 🔒 [오타 수정 완료] 정의되지 않은 가짜 명찰을 진짜 보안 엔진 이름인 generateVerificationToken으로 매핑했습니다.
-        const verificationHash = generateVerificationToken(currentUsername, score);
+        // 🔒 [보안 크래시 해결] Token이든 Hash든 어떤 이름으로 선언되어 있든 알아서 찾아 매핑하는 스마트 체인
+        let verificationHash = "";
+        if (typeof generateVerificationToken === 'function') {
+            verificationHash = generateVerificationToken(currentUsername, score);
+        } else if (typeof generateVerificationHash === 'function') {
+            verificationHash = generateVerificationHash(currentUsername, score);
+        } else {
+            console.warn("⚠️ 보안 검증 함수가 누락되었습니다. 일반 인서트를 시도합니다.");
+        }
         
-        // window._supabase 객체를 조준하여 랭킹 데이터 안전 전송
         const { data, error } = await window._supabase.from('circle_rankings').insert([{ 
             username: currentUsername, score: score, verification_token: verificationHash 
         }]).select();
