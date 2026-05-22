@@ -3,12 +3,8 @@ let ctx = canvas ? canvas.getContext('2d') : null;
 let isDrawing = false;
 let points = []; 
 
-// 방금 업로드한 본인의 최신 기록 ID를 기억하기 위한 변수 (랭킹판 색상 강조용)
 let lastUploadedId = null;
 
-/**
- * 원 그리기 캔버스 이벤트 초기화
- */
 function initCircleCanvas() {
     if (!canvas) return;
     canvas.addEventListener('mousedown', startDrawing);
@@ -58,21 +54,11 @@ function draw(e) {
 function stopDrawing() {
     if (!isDrawing) return;
     isDrawing = false;
-    
-    if (points.length < 15) { 
-        document.getElementById('message').innerText = "너무 짧게 그렸습니다."; 
-        return; 
-    }
-    
-    // 🛡️ [보안 가드] 마우스를 떼는 순간 security.js의 독립형 20초 쿨타임 시스템 검증 가동
+    if (points.length < 15) { document.getElementById('message').innerText = "너무 짧게 그렸습니다."; return; }
     if (typeof canSubmitCircleScore === 'function' && !canSubmitCircleScore()) return;
-    
     calculateCircleScore();
 }
 
-/**
- * 3중 감점 시스템 기반의 실시간 원 정확도 판정 엔진
- */
 async function calculateCircleScore() {
     const scoreDisplay = document.getElementById('score-display');
     const messageDisplay = document.getElementById('message');
@@ -116,10 +102,8 @@ async function calculateCircleScore() {
 
     drawPerfectGuideCircle(centerX, centerY, avgRadius);
 
-    // 데이터베이스에 점수 업로드
     await uploadCircleScore(finalScore);
 
-    // 최종 점수가 95% 이상일 때 히든 보상 페이지(suddenwinner.html)로 이동
     if (finalScore >= 95.0) {
         sessionStorage.setItem('circle_celebration_verified', 'true');
         sessionStorage.setItem('circle_celebration_score', finalScore.toString());
@@ -130,67 +114,46 @@ async function calculateCircleScore() {
     }
 }
 
-/**
- * 오차 정밀 체감을 위한 무게중심(빨간 점) 및 컴퓨터 가이드라인(빨간 점선) 시각화
- */
 function drawPerfectGuideCircle(cx, cy, radius) {
     if (!ctx) return;
-
-    // 1. 중심점에 작은 고정 점 찍기
     ctx.beginPath();
     ctx.arc(cx, cy, 4, 0, Math.PI * 2);
     ctx.fillStyle = '#ff4d4d';
     ctx.fill();
 
-    // 2. 컴퓨터가 정한 완벽한 원을 '빨간색 점선'으로 겹쳐서 그리기
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.lineWidth = 3;
-    ctx.strokeStyle = 'rgba(255, 77, 77, 0.8)'; // 반투명한 빨간색
-    ctx.setLineDash([6, 6]); // 6픽셀 선, 6픽셀 공백의 점선 스타일
+    ctx.strokeStyle = 'rgba(255, 77, 77, 0.8)'; 
+    ctx.setLineDash([6, 6]); 
     ctx.stroke();
-    ctx.setLineDash([]); // 다른 선에 영향 주지 않도록 점선 스타일 리셋
+    ctx.setLineDash([]); 
 }
 
-/**
- * Supabase 데이터베이스에 원 그리기 판정 점수 업로드
- */
 async function uploadCircleScore(score) {
     if (!initSupabase() || score < 0 || score > 100) return;
     try {
-        // 🐛 [버그 수정 완료] 존재하지 않던 오타 함수 generateVerificationHash를 
-        // security.js의 실제 암호화 엔진 이름인 'generateVerificationToken'으로 전면 교체 완료했습니다!
+        // 🔒 [오타 수정 완료] 정의되지 않은 가짜 명찰을 진짜 보안 엔진 이름인 generateVerificationToken으로 매핑했습니다.
         const verificationHash = generateVerificationToken(currentUsername, score);
         
-        const { data, error } = await _supabase.from('circle_rankings').insert([{ 
-            username: currentUsername, 
-            score: score, 
-            verification_token: verificationHash 
+        // window._supabase 객체를 조준하여 랭킹 데이터 안전 전송
+        const { data, error } = await window._supabase.from('circle_rankings').insert([{ 
+            username: currentUsername, score: score, verification_token: verificationHash 
         }]).select();
         
         if (error) throw error;
         if (data && data.length > 0) { lastUploadedId = data[0].id; }
-        
-        // 🔒 [타임락 발동] 데이터 업로드가 성공적으로 기록되면 세션에 20초간 재인서트 잠금 처리
-        if (typeof lockCircleSubmitTime === 'function') {
-            lockCircleSubmitTime();
-        }
-        
-        // 실시간 원그리기 명예의 전당 보드 갱신
+        if (typeof lockCircleSubmitTime === 'function') lockCircleSubmitTime();
         fetchCircleRankings();
-        
     } catch (err) { 
-        console.error("❌ 원 그리기 업로드 실패:", err); 
+        console.error("원 그리기 업로드 실패:", err); 
     }
 }
 
-/**
- * Supabase로부터 실시간 원그리기 TOP 10 명예의 전당 보드 가져오기
- */
 async function fetchCircleRankings() {
     if (!initSupabase()) return;
     try {
-        const { data, error } = await _supabase
+        const { data, error } = await window._supabase
             .from('circle_rankings')
             .select('*')
             .order('score', { ascending: false })
@@ -214,7 +177,6 @@ async function fetchCircleRankings() {
             const dateString = new Date(player.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
             const li = document.createElement('li');
             
-            // 내 방금 기록 하이라이트 인라인 CSS 스타일 적용 구조 보존
             if (lastUploadedId && player.id === lastUploadedId) {
                 li.style.backgroundColor = '#e6f4ea'; 
                 li.style.color = '#137333';
@@ -222,15 +184,13 @@ async function fetchCircleRankings() {
                 li.style.borderRadius = '5px';
                 li.style.padding = '4px 8px';
                 li.style.transition = 'all 0.5s ease';
-                
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#137333; float:right;">(${dateString})</span>`;
             } else {
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#888; float:right;">(${dateString})</span>`;
             }
-            
             circleRankingList.appendChild(li);
         });
     } catch (err) { 
-        console.error("❌ 원 랭킹 로드 실패:", err); 
+        console.error("원 랭킹 로드 실패:", err); 
     }
 }
