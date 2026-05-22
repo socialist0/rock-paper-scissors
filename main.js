@@ -26,7 +26,10 @@ window.addEventListener('load', async () => {
     // 2. ment.json 멘트 파일 로드
     await loadMentsFromFile(); 
     
-    // 3. 각 함수가 존재하는지 확인하고 안전하게 실행
+    // 3. 닉네임 입력창에 플레이스홀더 바인딩 및 초기화
+    initNicknameInput();
+    
+    // 4. 각 함수가 존재하는지 확인하고 안전하게 실행
     if (typeof fetchGlobalRankings === 'function') {
         fetchGlobalRankings();
     } else {
@@ -59,13 +62,23 @@ async function loadMentsFromFile() {
     }
 }
 
+/**
+ * 🌟 닉네임 입력창 플레이스홀더 주입 함수
+ */
+function initNicknameInput() {
+    const input = document.getElementById('username-input');
+    if (input) {
+        input.placeholder = "한글 최대 5자 / 영어 최대 16자";
+    }
+}
+
 // ==========================================
 // 2. 닉네임 로그인 및 게임 선택 탭 시스템
 // ==========================================
 
 /**
  * 🌟 문자열의 바이트 길이를 정확하게 계산하는 헬퍼 함수
- * (영문/숫자/공백 등 ASCII는 1바이트, 한글/이모지 등은 3바이트로 계산)
+ * (호이스팅 및 참조 에러를 완전히 방지하기 위해 일반 함수 형태로 명확히 정의)
  */
 function getByteLength(str) {
     return new TextEncoder().encode(str).length;
@@ -73,6 +86,8 @@ function getByteLength(str) {
 
 function saveUsername() {
     const input = document.getElementById('username-input');
+    if (!input) return;
+    
     const username = input.value.trim();
 
     // 1. 공백 입력 검증
@@ -81,7 +96,7 @@ function saveUsername() {
         return;
     }
 
-    // 2. 🛡️ [추가] 닉네임 16바이트 길이 제한 검증
+    // 2. 🛡️ 닉네임 16바이트 길이 제한 검증 (참조 에러 해결 완료)
     const byteLength = getByteLength(username);
     if (byteLength > 16) {
         alert(`닉네임이 너무 깁니다! (현재: ${byteLength}바이트 / 최대: 16바이트)\n* 영문·숫자는 최대 16자, 한글은 최대 5자까지 가능합니다.`);
@@ -89,7 +104,11 @@ function saveUsername() {
     }
 
     currentUsername = username;
-    document.getElementById('display-username').innerText = currentUsername;
+    
+    const displayUsername = document.getElementById('display-username');
+    if (displayUsername) {
+        displayUsername.innerText = currentUsername;
+    }
     
     document.getElementById('user-setup').style.display = 'none';
     document.getElementById('game-area').style.display = 'block';
@@ -106,15 +125,15 @@ function switchGame(gameType) {
     const circleTab = document.getElementById('tab-circle');
 
     if (gameType === 'rps') {
-        rpsContent.style.display = 'flex';
-        circleContent.style.display = 'none';
-        rpsTab.classList.add('active');
-        circleTab.classList.remove('active');
+        if (rpsContent) rpsContent.style.display = 'flex';
+        if (circleContent) circleContent.style.display = 'none';
+        if (rpsTab) rpsTab.classList.add('active');
+        if (circleTab) circleTab.classList.remove('active');
     } else {
-        rpsContent.style.display = 'none';
-        circleContent.style.display = 'flex';
-        circleTab.classList.add('active');
-        rpsTab.classList.remove('active');
+        if (rpsContent) rpsContent.style.display = 'none';
+        if (circleContent) circleContent.style.display = 'flex';
+        if (circleTab) circleTab.classList.add('active');
+        if (rpsTab) rpsTab.classList.remove('active');
         if (typeof resizeCanvas === 'function') resizeCanvas();
     }
 }
@@ -139,6 +158,7 @@ window.addEventListener('load', () => {
         const nicknameInput = document.getElementById('username-input');
         if (nicknameInput) {
             nicknameInput.value = '';
+            initNicknameInput(); // 플레이스홀더 재주입
             nicknameInput.focus();
         }
         
