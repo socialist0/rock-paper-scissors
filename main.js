@@ -1,21 +1,18 @@
 // ==========================================
-// 0. Supabase 전역 객체 연동 (하드코딩 제거 완료)
+// 0. Supabase 환경변수 직접 주입
 // ==========================================
+const supabaseUrl = 'https://zqocsmfeigllzqladkqj.supabase.co'; 
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Inpxb2NzbWZlaWdsbHpxbGFka3FqIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzg2ODcxNzYsImV4cCI6MjA5NDI2MzE3Nn0.RC6XmK9zSaX5BnXYz_-rUFu2YMOq4_pOw7qDPELdnIk';
+
 let currentUsername = "";
 let evaluationMents = []; // 멘트 저장 배열
 
-// 🌟 config.js에서 이미 생성된 window._supabase를 안전하게 연결하는 함수
 function initSupabase() {
-    // 1. window._supabase 전역 객체가 이미 메모리에 존재하는지 체크
-    if (window._supabase) {
-        // 기존 개별 게임 코드들과의 변수 호환성을 위해 local 전역 변수 _supabase에도 바인딩해 줍니다.
-        if (typeof _supabase === 'undefined') {
-            window._supabase = window._supabase;
-        }
+    if (window._supabase) return true;
+    if (typeof supabase !== 'undefined') {
+        window._supabase = supabase.createClient(supabaseUrl, supabaseKey);
         return true;
     }
-    
-    console.error("⚠️ [에러] config.js 파일이 없거나 window._supabase 객체가 생성되지 않았습니다.");
     return false;
 }
 
@@ -23,13 +20,13 @@ function initSupabase() {
 // 1. 플랫폼 초기화 및 파일 프리로딩 이벤트
 // ==========================================
 window.addEventListener('load', async () => {
-    // 1. config.js 기반의 Supabase 백엔드 먼저 상속 및 연결
+    // 1. Supabase 백엔드 먼저 연결
     initSupabase();
     
-    // 2. ment.json 멘트 파일 비동기 로드
+    // 2. ment.json 멘트 파일 로드
     await loadMentsFromFile(); 
     
-    // 3. 각 독립 게임 모듈 함수들이 존재하는지 검증 후 안전하게 실시간 데이터 렌더링!
+    // 3. 각 함수가 존재하는지 확인하고 안전하게 실행
     if (typeof fetchGlobalRankings === 'function') {
         fetchGlobalRankings();
     } else {
@@ -47,7 +44,7 @@ window.addEventListener('load', async () => {
     }
 });
 
-// 🌟 외부 ment.json 파일을 가져오는 안전한 함수
+// 외부 ment.json 파일을 가져오는 안전한 함수
 async function loadMentsFromFile() {
     try {
         const response = await fetch('ment.json');
@@ -65,12 +62,29 @@ async function loadMentsFromFile() {
 // ==========================================
 // 2. 닉네임 로그인 및 게임 선택 탭 시스템
 // ==========================================
+
+/**
+ * 🌟 문자열의 바이트 길이를 정확하게 계산하는 헬퍼 함수
+ * (영문/숫자/공백 등 ASCII는 1바이트, 한글/이모지 등은 3바이트로 계산)
+ */
+function getByteLength(str) {
+    return new TextEncoder().encode(str).length;
+}
+
 function saveUsername() {
     const input = document.getElementById('username-input');
     const username = input.value.trim();
 
+    // 1. 공백 입력 검증
     if (!username) {
         alert("닉네임을 입력해 주세요!");
+        return;
+    }
+
+    // 2. 🛡️ [추가] 닉네임 16바이트 길이 제한 검증
+    const byteLength = getByteLength(username);
+    if (byteLength > 16) {
+        alert(`닉네임이 너무 깁니다! (현재: ${byteLength}바이트 / 최대: 16바이트)\n* 영문·숫자는 최대 16자, 한글은 최대 5자까지 가능합니다.`);
         return;
     }
 
@@ -105,29 +119,23 @@ function switchGame(gameType) {
     }
 }
 
-// ==========================================
-// 3. 글로벌 타이틀 내비게이션 ("잠시만 혹시...?") 이벤트
-// ==========================================
+// 타이틀 클릭 시 메인(닉네임 입력) 화면으로 돌아가는 이벤트
 window.addEventListener('load', () => {
     const mainTitle = document.getElementById('main-title');
     
     mainTitle?.addEventListener('click', function() {
-        // 1. 게임 플레이 구역(#game-area)을 통째로 안 보이게 숨깁니다.
         const gameArea = document.getElementById('game-area');
         if (gameArea) {
             gameArea.style.display = 'none';
         }
 
-        // 2. 닉네임을 입력하는 첫 화면(#user-setup)을 다시 눈에 보이게 켭니다!
         const userSetup = document.getElementById('user-setup');
         if (userSetup) {
             userSetup.style.display = 'block';
         }
 
-        // 3. 현재 저장되어 있던 닉네임 변수를 초기화합니다.
         currentUsername = null;
         
-        // 4. 입력창에 적혀있던 기존 닉네임을 지우고 바로 타이핑할 수 있게 포커스를 줍니다.
         const nicknameInput = document.getElementById('username-input');
         if (nicknameInput) {
             nicknameInput.value = '';
