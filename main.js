@@ -102,37 +102,33 @@ function switchGame(gameType) {
         if (typeof resizeCanvas === 'function') resizeCanvas();
     }
 }
-// main.js 최하단에 교체해 넣을 최적화 코드
+// main.js 맨 아래에 있는 기존 타이틀 클릭 이벤트를 이 코드로 깔끔하게 새로 교체해 주세요!
 window.addEventListener('load', () => {
     const mainTitle = document.getElementById('main-title');
     
     mainTitle?.addEventListener('click', function() {
-        // 1. 전체 게임 플레이 화면을 숨김 처리합니다.
+        // 1. 게임 플레이 구역(#game-area)을 통째로 안 보이게 숨깁니다.
         const gameArea = document.getElementById('game-area');
-        if (gameArea) gameArea.style.display = 'none';
-
-        // 2. 개별 게임 서브 컨텐츠 영역도 모두 동시 초기화합니다.
-        const contents = document.querySelectorAll('.content');
-        contents.forEach(content => {
-            content.style.display = 'none';
-        });
-
-        // 3. 닉네임을 다시 입력하는 첫 레이아웃 스크린을 노출합니다.
-        const loginScreen = document.getElementById('login-screen');
-        if (loginScreen) {
-            loginScreen.style.display = 'block';
+        if (gameArea) {
+            gameArea.style.display = 'none';
         }
 
-        // 4. 세션 유저 캐시 초기화
+        // 2. 닉네임을 입력하는 첫 화면(#user-setup)을 다시 눈에 보이게 켭니다!
+        const userSetup = document.getElementById('user-setup');
+        if (userSetup) {
+            userSetup.style.display = 'block'; // 💡 index.html의 실제 ID인 user-setup과 매핑!
+        }
+
+        // 3. 현재 저장되어 있던 닉네임 변수를 초기화합니다.
         currentUsername = null;
         
-        // 5. 인풋 텍스트 상자 초기화 및 포커싱 처리
+        // 4. 입력창에 적혀있던 기존 닉네임을 지우고 바로 타이핑할 수 있게 포커스를 줍니다.
         const nicknameInput = document.getElementById('username-input');
         if (nicknameInput) {
             nicknameInput.value = '';
             nicknameInput.focus();
         }
         
-        console.log("메인 로그인 화면으로 완벽하게 이동했습니다.");
+        console.log("실제 메인 화면(user-setup)으로 부드럽게 이동 완료했습니다!");
     });
 });
