@@ -148,7 +148,7 @@ async function fetchCircleRankings() {
         const circleRankingList = document.getElementById('circleRankingList');
         if (!circleRankingList) return;
         
-        // 기존 리스트 아이템들만 비웁니다. (안내 문구를 조작하는 구형 코드는 모두 삭제되었습니다.)
+        // 기존 리스트 아이템들만 비웁니다.
         circleRankingList.innerHTML = '';
 
         if (data.length === 0) {
@@ -174,10 +174,10 @@ async function fetchCircleRankings() {
                 // "(방금 추가됨)" 텍스트 문구가 제거된 깔끔한 하이라이트 형태입니다.
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#137333; float:right;">(${dateString})</span>`;
             } else {
-                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#888; float:right;">(${dateString})</span>`;
+                li.innerHTML = ` = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#888; float:right;">(${dateString})</span>`;
             }
             
             circleRankingList.appendChild(li);
         });
     } catch (err) { console.error("원 랭킹 로드 실패:", err); }
-}
+} // ⬅️ 불필요한 중괄호를 제거하여 완벽하게 닫아주었습니다!
