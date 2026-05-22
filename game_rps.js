@@ -1,5 +1,5 @@
 let rpsStreak = 0; 
-let lastRpsUploadedId = null; // 🌟 내가 방금 등록한 순위를 기억하기 위한 변수 추가
+let lastRpsUploadedId = null; // 내가 방금 등록한 순위를 기억하기 위한 변수
 
 async function playGame(userChoice) {
     if (!currentUsername) {
@@ -14,7 +14,7 @@ async function playGame(userChoice) {
     let result = '';
 
     if (userChoice === computerChoice) {
-        // 🤝 비겼을 때: 문구만 출력하고 연승 유지, 서버 업로드 없이 '즉시 함수 종료(return)'
+        // 비겼을 때: 문구만 출력하고 연승 유지, 서버 업로드 없이 '즉시 함수 종료(return)'
         result = `무승부입니다! 🤝\n현재 ${rpsStreak}연승 유지 중!`;
         document.getElementById('result-text').innerText = 
             `나: ${koreanChoices[userChoice]} vs 컴퓨터: ${koreanChoices[computerChoice]}\n\n${result}`;
@@ -26,13 +26,13 @@ async function playGame(userChoice) {
         (userChoice === 'paper' && computerChoice === 'rock') ||
         (userChoice === 'scissors' && computerChoice === 'paper')
     ) {
-        // 🎉 이겼을 때: 연승 카운트 증가, 화면 갱신 후 종료
+        // 이겼을 때: 연승 카운트 증가, 화면 갱신 후 종료
         rpsStreak++;
         result = `이겼습니다! 🎉\n현재 ${rpsStreak}연승 중!`;
         document.getElementById('user-score').innerText = rpsStreak;
         
     } else {
-        // 😭 졌을 때: 오직 졌을 때만 연승 기록이 1 이상일 경우 서버에 저장 시도
+        // 졌을 때: 오직 졌을 때만 연승 기록이 1 이상일 경우 서버에 저장 시도
         if (rpsStreak > 0) {
             await uploadRpsScore(rpsStreak);
         } else {
@@ -57,7 +57,7 @@ async function uploadRpsScore(score) {
             verificationHash = generateVerificationHash(currentUsername, score);
         }
         
-        // 🌟 저장 후 새로 생성된 행의 고유 ID(id)를 가져오도록 .select() 추가
+        // 저장 후 새로 생성된 행의 고유 ID(id)를 가져오도록 .select() 추가
         const { data, error } = await window._supabase.from('rankings').insert([{ 
             username: currentUsername, 
             score: score, 
@@ -66,7 +66,7 @@ async function uploadRpsScore(score) {
         
         if (error) throw error;
         
-        // 🌟 방금 등록된 데이터의 고유 ID를 전역 변수에 보관
+        // 방금 등록된 데이터의 고유 ID를 전역 변수에 보관
         if (data && data.length > 0) {
             lastRpsUploadedId = data[0].id;
         }
@@ -81,24 +81,48 @@ async function uploadRpsScore(score) {
 async function fetchGlobalRankings() {
     if (!initSupabase()) return;
     try {
+        // 🌟 [교정] 중복 제거 알고리즘 적용을 위해 대량의 최신 상위 데이터를 먼저 가져옵니다.
+        // 최신순(created_at desc)을 먼저 정렬해서 최신 기록이 배열 위쪽으로 오도록 세팅합니다.
         const { data, error } = await window._supabase
             .from('rankings')
             .select('*')
             .order('score', { ascending: false })
-            .order('created_at', { ascending: false }) // 최신 기록 우선 정렬 추가
-            .limit(10);
+            .order('created_at', { ascending: false });
             
         if (error) throw error;
         const rankingList = document.getElementById('rankingList');
         if (!rankingList) return;
         
-        rankingList.innerHTML = data.length === 0 ? '<li>랭킹이 없습니다.</li>' : '';
+        rankingList.innerHTML = '';
+
+        if (!data || data.length === 0) {
+            rankingList.innerHTML = '<li>랭킹이 없습니다.</li>';
+            return;
+        }
+
+        // 🌟 동일 닉네임 + 동일 점수의 중복을 완전히 제거하고 오직 최신 것 1개만 남기는 필터 로직
+        const uniqueRankings = [];
+        const seenPairs = new Set();
+
+        for (const player of data) {
+            // 한 유저가 기록한 특정 점수대를 고유 키로 생성 (예: "홍길동_5")
+            const uniqueKey = `${player.username}_${player.score}`;
+            
+            if (!seenPairs.has(uniqueKey)) {
+                seenPairs.add(uniqueKey);
+                uniqueRankings.push(player);
+            }
+            
+            // 중복을 제거한 유니크 리스트가 Top 10개가 채워지면 루프 중단
+            if (uniqueRankings.length >= 10) break;
+        }
         
-        data.forEach((player, index) => {
+        // 🌟 정제된 최종 10개의 유니크 리스트를 화면에 바인딩
+        uniqueRankings.forEach((player, index) => {
             const dateString = new Date(player.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
             const li = document.createElement('li');
             
-            // 🌟 내 최신 등록 기록과 일치하면 원 그리기와 동일하게 초록색으로 하이라이트 효과 적용
+            // 내 최신 등록 기록과 일치하면 초록색으로 하이라이트 효과 적용
             if (lastRpsUploadedId && player.id === lastRpsUploadedId) {
                 li.style.backgroundColor = '#e6f4ea'; 
                 li.style.color = '#137333';
