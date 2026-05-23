@@ -99,6 +99,7 @@ async function loadMentsFromFile() {
 function initNicknameInput() {
     const input = document.getElementById('username-input');
     if (input) {
+        // 💡 안내 문구를 한글 4자 / 영어 8자로 수정했습니다.
         input.placeholder = "한글 4자 이내 / 영어 8자 이내";
     }
 }
@@ -122,8 +123,9 @@ function saveUsername() {
     }
 
     const byteLength = getByteLength(username);
-    if (byteLength > 8) {
-        alert(`닉네임이 너무 깁니다! (현재: ${byteLength}바이트 / 최대: 8바이트)\n* 영문·숫자는 최대 8자, 한글은 최대 4자까지 가능합니다.`);
+    // 💡 최대 바이트를 12로 변경하여 한글 4자(12바이트), 영문 8자(8바이트) 제한을 충족합니다.
+    if (byteLength > 12) {
+        alert(`닉네임이 너무 깁니다!\n* 영문·숫자는 최대 8자, 한글은 최대 4자까지 가능합니다.`);
         return;
     }
 
