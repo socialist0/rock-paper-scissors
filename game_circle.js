@@ -104,7 +104,9 @@ async function calculateCircleScore() {
 
     await uploadCircleScore(finalScore);
 
-    if (finalScore >= 95.0) {
+    // ✨ 축하 페이지 이동 조건: Supabase game_config 테이블의 circle_threshold 값을 사용합니다.
+    // 👉 main.js의 전역변수 CIRCLE_THRESHOLD로 관리되며, 대시보드에서 숫자만 바꾸면 즉시 반영됩니다.
+    if (finalScore >= CIRCLE_THRESHOLD) {
         sessionStorage.setItem('circle_celebration_verified', 'true');
         sessionStorage.setItem('circle_celebration_score', finalScore.toString());
 

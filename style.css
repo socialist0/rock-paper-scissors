@@ -32,19 +32,36 @@ h1 {
    ========================================== */
 #user-setup {
     display: flex;
+    flex-direction: column;  /* 세로 배치: 문구 → 입력칸 → 버튼 순서로 */
     justify-content: center;
     align-items: center;
-    gap: 10px;           /* 인풋창과 버튼 사이의 간격 */
+    gap: 10px;
     width: 100%;
-    max-width: 450px;    /* 너무 퍼지지 않는 깔끔한 폭 */
-    margin: 40px auto;   /* 상하 여백을 주고 좌우 auto로 확실하게 정중앙 배치 */
+    max-width: 450px;
+    margin: 40px auto;
     padding: 0;
+}
+
+/* 닉네임 입력 안내 문구 */
+#user-setup p {
+    margin: 0;
+    font-size: 1rem;
+    font-weight: bold;
+    color: #333;
+}
+
+/* 입력칸과 버튼을 세로로 배치하는 래퍼 */
+#user-setup .input-row {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    width: 100%;
 }
 
 /* 닉네임 입력창 - 기본 사각형 감성을 살리고 터치 이동 버그 제거 */
 #username-input {
-    flex: 2;             /* 입력창이 버튼보다 더 넓게 확장 */
-    height: 48px;        /* 버튼과 소수점까지 일치하는 표준 높이 */
+    width: 100%;
+    height: 56px;
     padding: 0 15px;
     border: 2px solid #ccc;
     border-radius: 8px;
@@ -65,8 +82,8 @@ h1 {
 
 /* 시작하기 버튼 */
 #user-setup button {
-    flex: 1;             /* 버튼 너비 비율 */
-    height: 48px;        /* 입력창과 100% 일치하는 높이 */
+    width: 100%;
+    height: 56px;        /* 입력창과 100% 일치하는 높이 */
     padding: 0 15px;
     border: none;
     border-radius: 8px;

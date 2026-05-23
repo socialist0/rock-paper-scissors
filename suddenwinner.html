@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>👑 신의 손 달성 축하합니다! 👑</title>
+    <title>👑 신의 경지 달성! 👑</title>
     <style>
         body {
             margin: 0;
@@ -93,41 +93,68 @@
 <body>
 
     <div class="container">
-        <h1>👑 GOD'S HAND 👑</h1>
-        <div class="subtitle">인간 컴퍼스의 완벽한 부활!</div>
+        <h1 id="main-title">👑 GOD'S HAND 👑</h1>
+        <div class="subtitle" id="sub-title">인간 컴퍼스의 완벽한 부활!</div>
         
-        <div class="score-box" id="display-score">0%</div>
+        <div class="score-box" id="display-score">0</div>
         
-        <div class="desc">
+        <div class="desc" id="main-desc">
             기하학의 신조차 감탄할 만한 대칭성과 정밀함입니다.<br>
             당신이 마우스(터치)로 도달한 이 경이로운 궤적은<br>
             원 그리기 명예의 전당 최상위권에 영원히 박제됩니다!
         </div>
         
-        <a href="index.html" class="btn">다시 그리기 도전</a>
+        <a href="index.html" class="btn" id="retry-btn">다시 도전하기</a>
     </div>
 
 <script>
-        // 1. 세션 스토리지에서 인증 티켓과 정상 점수를 읽어옵니다.
-        const celebrationToken = sessionStorage.getItem('circle_celebration_verified');
-        const verifiedScore = sessionStorage.getItem('circle_celebration_score');
-        
-        // 2. URL 파라미터에서 점수를 읽어옵니다.
-        const urlParams = new URLSearchParams(window.location.search);
-        const urlScore = urlParams.get('score');
+    const urlParams = new URLSearchParams(window.location.search);
+    const urlScore = urlParams.get('score');
+    const game = urlParams.get('game'); // 'rps' 또는 없으면 원 그리기
 
-        // 3. 보안 검증: 티켓이 없거나, URL 점수가 가짜이거나 조작된 경우 즉시 차단!
+    // ============================
+    // 가위바위보 1등 달성 케이스
+    // ============================
+    if (game === 'rps') {
+        const celebrationToken = sessionStorage.getItem('rps_celebration_verified');
+        const verifiedScore = sessionStorage.getItem('rps_celebration_score');
+
         if (celebrationToken !== 'true' || !verifiedScore || urlScore !== verifiedScore) {
             alert("🚫 잘못된 접근입니다. 정상적인 경로로 이용해 주세요!");
             window.location.href = 'index.html';
         } else {
-            // 정상적인 접근일 때만 화면에 점수를 표시합니다.
+            document.getElementById('main-title').innerText = '👑 NO.1 CHAMPION 👑';
+            document.getElementById('sub-title').innerText = '가위바위보 명예의 전당 1위 등극!';
+            document.getElementById('display-score').innerText = verifiedScore + '연승';
+            document.getElementById('main-desc').innerHTML =
+                `단 한 번도 무너지지 않은 ${verifiedScore}연승의 신화.<br>` +
+                `철벽 같은 판단력과 흔들리지 않는 멘탈로<br>` +
+                `가위바위보 명예의 전당 정상을 차지했습니다!`;
+            document.getElementById('retry-btn').innerText = '다시 도전하기';
+
+            // 티켓 즉시 폐기
+            sessionStorage.removeItem('rps_celebration_verified');
+            sessionStorage.removeItem('rps_celebration_score');
+        }
+
+    // ============================
+    // 원 그리기 95점 이상 케이스
+    // ============================
+    } else {
+        const celebrationToken = sessionStorage.getItem('circle_celebration_verified');
+        const verifiedScore = sessionStorage.getItem('circle_celebration_score');
+
+        if (celebrationToken !== 'true' || !verifiedScore || urlScore !== verifiedScore) {
+            alert("🚫 잘못된 접근입니다. 정상적인 경로로 이용해 주세요!");
+            window.location.href = 'index.html';
+        } else {
             document.getElementById('display-score').innerText = verifiedScore + '%';
-            
-            // [보안 강화] 한 번 축하 페이지를 본 후에는 새로고침이나 주소 공유로 재접속하지 못하도록 티켓을 즉시 폐기합니다.
+
+            // 티켓 즉시 폐기
             sessionStorage.removeItem('circle_celebration_verified');
             sessionStorage.removeItem('circle_celebration_score');
         }
-    </script>
+    }
+</script>
 </body>
 </html>

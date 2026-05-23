@@ -72,13 +72,16 @@ async function uploadRpsScore(score) {
         }
         
         if (typeof lockRpsSubmitTime === 'function') lockRpsSubmitTime();
-        fetchGlobalRankings();
+
+        // 랭킹 갱신 후 1등 여부 확인
+        await fetchGlobalRankings({ checkWinner: true, myScore: score });
+
     } catch (err) { 
         console.error("가위바위보 업로드 실패:", err); 
     }
 }
 
-async function fetchGlobalRankings() {
+async function fetchGlobalRankings({ checkWinner = false, myScore = null } = {}) {
     if (!initSupabase()) return;
     try {
         // 중복 제거 계산을 위해 전체 데이터를 최신순으로 정렬하여 넉넉히 가져옵니다.
@@ -119,7 +122,6 @@ async function fetchGlobalRankings() {
             const dateString = new Date(player.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
             const li = document.createElement('li');
             
-            // 🌟 [교정] 타입 유연성을 위해 형변환 후 대조 처리 (== 사용 또는 양쪽 다 String 변환)
             const isMyNewScore = lastRpsUploadedId && (String(player.id) === lastRpsUploadedId);
             
             if (isMyNewScore) {
@@ -129,7 +131,6 @@ async function fetchGlobalRankings() {
                 li.style.borderRadius = '5px';
                 li.style.padding = '6px 10px';
                 li.style.margin = '4px 0';
-                li.style.border = '1px solid #max-content'; // 테두리 살짝 추가하여 강조 효과 극대화
                 li.style.transition = 'all 0.5s ease';
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🏆 ${player.score}연승 <span style="font-size:0.85rem; color:#137333; float:right;">(${dateString})</span>`;
             } else {
@@ -138,6 +139,18 @@ async function fetchGlobalRankings() {
             }
             rankingList.appendChild(li);
         });
+
+        // ✨ 축하 페이지 이동 조건: Supabase game_config 테이블의 rps_threshold 값을 사용합니다.
+        // 👉 main.js의 전역변수 RPS_THRESHOLD로 관리되며, 대시보드에서 숫자만 바꾸면 즉시 반영됩니다.
+        if (checkWinner && myScore !== null && myScore >= RPS_THRESHOLD) {
+            sessionStorage.setItem('rps_celebration_verified', 'true');
+            sessionStorage.setItem('rps_celebration_score', myScore.toString());
+
+            setTimeout(() => {
+                window.location.href = `suddenwinner.html?game=rps&score=${myScore}`;
+            }, 800);
+        }
+
     } catch (err) { 
         console.error("가위바위보 랭킹 로드 실패:", err); 
     }
