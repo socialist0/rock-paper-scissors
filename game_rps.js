@@ -30,19 +30,17 @@ async function playGame(userChoice) {
         document.getElementById('user-score').innerText = rpsStreak;
         
     } else {
-        // 졌을 때: 연승 기록 업로드 후 result-text에 순위 함께 표시
         if (rpsStreak > 0) {
             const finalStreak = rpsStreak;
             rpsStreak = 0;
             document.getElementById('user-score').innerText = rpsStreak;
-            document.getElementById('result-text').innerText =
-                `나: ${koreanChoices[userChoice]} vs 컴퓨터: ${koreanChoices[computerChoice]}\n\n졌습니다... 😭\n최종 기록: ${finalStreak}연승\n\n다시 도전해 보세요!`;
+            // ✨ 순위 조회 완료 후 result-text에 한번에 표시 (임시 문구 없음)
             await uploadRpsScore(finalStreak);
             return;
         } else {
             lastRpsUploadedId = null;
         }
-        result = `졌습니다... 😭\n최종 기록: ${rpsStreak}연승`;
+        result = `졌습니다... 😭\n최종 기록: ${rpsStreak}연승\n\n다시 도전해 보세요!`;
         rpsStreak = 0; 
         document.getElementById('user-score').innerText = rpsStreak;
     }
@@ -75,7 +73,7 @@ async function uploadRpsScore(score) {
         
         if (typeof lockRpsSubmitTime === 'function') lockRpsSubmitTime();
 
-        // ✨ 랭킹 갱신 + 내 순위를 result-text 옆에 표시
+        // ✨ 랭킹 갱신 + 내 순위를 result-text에 표시
         await fetchGlobalRankings({ showMyRank: true, myScore: score });
 
     } catch (err) { 
