@@ -146,7 +146,7 @@ async function showMyRankNextToScore() {
             rankSpan.style.fontWeight = 'bold';
             rankSpan.style.color = '#b45309';
             rankSpan.style.marginLeft = '16px';
-            rankSpan.innerText = `현재 ${myRank + 1}위`;
+            rankSpan.innerText = `오늘 ${myRank + 1}위`;
             scoreDisplay.appendChild(rankSpan);
         }
     } catch (err) {
