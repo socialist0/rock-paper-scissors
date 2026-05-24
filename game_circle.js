@@ -100,20 +100,91 @@ async function calculateCircleScore() {
     const match = evaluationMents.find(m => finalScore <= m.max && finalScore >= m.min);
     messageDisplay.innerText = match ? match.text : "훌륭한 원입니다!";
 
-    drawPerfectGuideCircle(centerX, centerY, avgRadius);
-
+    // ✨ 내 순위를 멘트 바로 아래에 표시 (업로드 후 갱신)
     await uploadCircleScore(finalScore);
+    showMyRankBelowMessage(finalScore);
 
-    // ✨ 축하 페이지 이동 조건: Supabase game_config 테이블의 circle_threshold 값을 사용합니다.
-    // 👉 main.js의 전역변수 CIRCLE_THRESHOLD로 관리되며, 대시보드에서 숫자만 바꾸면 즉시 반영됩니다.
+    // ✨ 빨간 가이드라인 먼저, 그 위에 파란 선 리플레이
+    await replayDrawing(points, centerX, centerY, avgRadius);
+
+    // ✨ 축하 페이지 이동 조건
     if (finalScore >= CIRCLE_THRESHOLD) {
         sessionStorage.setItem('circle_celebration_verified', 'true');
         sessionStorage.setItem('circle_celebration_score', finalScore.toString());
-
         setTimeout(() => {
             window.location.href = `suddenwinner.html?score=${finalScore}`;
         }, 800); 
     }
+}
+
+// ✨ 멘트 바로 아래에 내 순위를 표시하는 함수
+async function showMyRankBelowMessage(myScore) {
+    if (!initSupabase()) return;
+    try {
+        const { data: allData } = await window._supabase
+            .from('circle_rankings')
+            .select('*')
+            .order('score', { ascending: false })
+            .order('created_at', { ascending: false });
+
+        if (!allData) return;
+
+        const myRank = allData.findIndex(p => p.id === lastUploadedId);
+        if (myRank === -1) return;
+
+        // 기존 순위 표시가 있으면 제거
+        const existing = document.getElementById('my-circle-rank-hint');
+        if (existing) existing.remove();
+
+        const rankDiv = document.createElement('div');
+        rankDiv.id = 'my-circle-rank-hint';
+        rankDiv.style.marginTop = '8px';
+        rankDiv.style.fontSize = '1rem';
+        rankDiv.style.fontWeight = 'bold';
+        rankDiv.style.color = '#b45309';
+        rankDiv.innerHTML = `🏅 현재 <strong>${myRank + 1}위</strong> (${myScore}%)`;
+
+        const messageDisplay = document.getElementById('message');
+        messageDisplay.insertAdjacentElement('afterend', rankDiv);
+    } catch (err) {
+        console.error("내 순위 표시 실패:", err);
+    }
+}
+
+// ✨ 게이머가 그렸던 파란 선을 처음부터 다시 재생하는 애니메이션
+// 👉 총 재생 시간은 REPLAY_DURATION_MS(밀리초)로 조절할 수 있습니다.
+function replayDrawing(pts, cx, cy, radius) {
+    // 👇 리플레이 속도 조절: 숫자가 클수록 천천히 그려집니다 (단위: ms)
+    const REPLAY_DURATION_MS = 2000;
+
+    return new Promise(resolve => {
+        clearCanvas();
+        const totalPoints = pts.length;
+        const interval = REPLAY_DURATION_MS / totalPoints;
+        let i = 0;
+
+        // 빨간 가이드라인 먼저 표시
+        drawPerfectGuideCircle(cx, cy, radius);
+
+        // 빨간 가이드라인이 ctx 스타일을 바꿔버리므로 파란색으로 명시적으로 재설정
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = 'blue';
+
+        const timer = setInterval(() => {
+            if (i >= totalPoints) {
+                clearInterval(timer);
+                resolve();
+                return;
+            }
+            ctx.lineTo(pts[i].x, pts[i].y);
+            ctx.stroke();
+            i++;
+        }, interval);
+    });
 }
 
 function drawPerfectGuideCircle(cx, cy, radius) {
@@ -198,35 +269,6 @@ async function fetchCircleRankings() {
             }
             circleRankingList.appendChild(li);
         });
-
-        // ✨ 내 기록이 10위 밖일 경우 현재 순위를 별도로 표시
-        if (lastUploadedId) {
-            const isInTop10 = data.some(p => p.id === lastUploadedId);
-            if (!isInTop10) {
-                const { data: allData } = await window._supabase
-                    .from('circle_rankings')
-                    .select('*')
-                    .order('score', { ascending: false })
-                    .order('created_at', { ascending: false });
-
-                if (allData) {
-                    const myRank = allData.findIndex(p => p.id === lastUploadedId);
-                    const myData = allData[myRank];
-                    if (myRank !== -1 && myData) {
-                        const myLi = document.createElement('li');
-                        myLi.style.backgroundColor = '#fff8e1';
-                        myLi.style.color = '#b45309';
-                        myLi.style.fontWeight = 'bold';
-                        myLi.style.borderRadius = '5px';
-                        myLi.style.padding = '6px 10px';
-                        myLi.style.margin = '8px 0 0 0';
-                        myLi.style.borderTop = '2px dashed #f59e0b';
-                        myLi.innerHTML = `🏅 내 기록: ${myData.score}% — 현재 <strong>${myRank + 1}위</strong>`;
-                        circleRankingList.appendChild(myLi);
-                    }
-                }
-            }
-        }
     } catch (err) { 
         console.error("원 랭킹 로드 실패:", err); 
     }
