@@ -14,7 +14,7 @@ async function playGame(userChoice) {
     let result = '';
 
     if (userChoice === computerChoice) {
-        result = `무승부입니다! 🤝\현재 ${rpsStreak}연승 유지 중!`;
+        result = `무승부입니다! 🤝 현재 ${rpsStreak}연승 유지 중!`;
         document.getElementById('result-text').innerText = 
             `나: ${koreanChoices[userChoice]} vs 컴퓨터: ${koreanChoices[computerChoice]}\n\n${result}`;
         return; 
@@ -26,7 +26,7 @@ async function playGame(userChoice) {
         (userChoice === 'scissors' && computerChoice === 'paper')
     ) {
         rpsStreak++;
-        result = `이겼습니다! 🎉\현재 ${rpsStreak}연승 중!`;
+        result = `이겼습니다! 🎉 현재 ${rpsStreak}연승 중!`;
         document.getElementById('user-score').innerText = rpsStreak;
         
     } else {
