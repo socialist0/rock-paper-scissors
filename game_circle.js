@@ -100,7 +100,8 @@ async function calculateCircleScore() {
     const match = evaluationMents.find(m => finalScore <= m.max && finalScore >= m.min);
     messageDisplay.innerText = match ? match.text : "훌륭한 원입니다!";
 
-    drawPerfectGuideCircle(centerX, centerY, avgRadius);
+    // ✨ 파란 선 리플레이 애니메이션 후 빨간 가이드라인 표시
+    await replayDrawing(points, centerX, centerY, avgRadius);
 
     await uploadCircleScore(finalScore);
 
@@ -114,6 +115,49 @@ async function calculateCircleScore() {
             window.location.href = `suddenwinner.html?score=${finalScore}`;
         }, 800); 
     }
+}
+
+// ✨ 게이머가 그렸던 파란 선을 처음부터 다시 재생하는 애니메이션
+// 👉 총 재생 시간은 REPLAY_DURATION_MS(밀리초)로 조절할 수 있습니다.
+function replayDrawing(pts, cx, cy, radius) {
+    // 👇 리플레이 속도 조절: 숫자가 클수록 천천히 그려집니다 (단위: ms)
+    const REPLAY_DURATION_MS = 2000;
+
+    return new Promise(resolve => {
+        clearCanvas();
+        const totalPoints = pts.length;
+        const interval = REPLAY_DURATION_MS / totalPoints;
+        let i = 0;
+
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = 'blue';
+
+        // 파란 선 재생 전에 빨간 가이드라인 먼저 표시
+        drawPerfectGuideCircle(cx, cy, radius);
+
+        // 빨간 가이드라인이 ctx 스타일을 바꿔버리므로 파란색으로 명시적으로 재설정
+        ctx.beginPath();
+        ctx.moveTo(pts[0].x, pts[0].y);
+        ctx.lineWidth = 5;
+        ctx.lineCap = 'round';
+        ctx.lineJoin = 'round';
+        ctx.strokeStyle = 'blue';
+
+        const timer = setInterval(() => {
+            if (i >= totalPoints) {
+                clearInterval(timer);
+                resolve();
+                return;
+            }
+            ctx.lineTo(pts[i].x, pts[i].y);
+            ctx.stroke();
+            i++;
+        }, interval);
+    });
 }
 
 function drawPerfectGuideCircle(cx, cy, radius) {
