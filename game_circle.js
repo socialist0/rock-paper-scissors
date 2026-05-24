@@ -33,14 +33,11 @@ function clearCanvas() { if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.heigh
 function startDrawing(e) {
     if (!currentUsername) return;
     isDrawing = true; points = []; clearCanvas();
-    // ✨ 최초 1회(점수가 없을 때)만 0%로 초기화, 이후엔 이전 점수 유지
+    // ✨ 최초 1회(점수가 없을 때)만 0%로 초기화, 이후엔 이전 점수와 순위 유지
     const scoreDisplay = document.getElementById('score-display');
     if (scoreDisplay.innerText === '0%' || scoreDisplay.innerText === '') {
         scoreDisplay.innerText = "0%";
     }
-    // 기존 순위 배지 제거
-    const existing = document.getElementById('my-rank-badge');
-    if (existing) existing.remove();
     document.getElementById('message').innerText = "정성을 다해 원을 그리는 중...";
 
     const rect = canvas.getBoundingClientRect();
