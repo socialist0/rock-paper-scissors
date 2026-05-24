@@ -142,7 +142,7 @@ async function showMyRankNextToScore() {
 
             const rankSpan = document.createElement('span');
             rankSpan.id = 'my-rank-badge';
-            rankSpan.style.fontSize = '2rem';
+            rankSpan.style.fontSize = '1.5rem';
             rankSpan.style.fontWeight = 'bold';
             rankSpan.style.color = '#b45309';
             rankSpan.style.marginLeft = '16px';
