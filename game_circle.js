@@ -100,9 +100,8 @@ async function calculateCircleScore() {
     const match = evaluationMents.find(m => finalScore <= m.max && finalScore >= m.min);
     messageDisplay.innerText = match ? match.text : "훌륭한 원입니다!";
 
-    // ✨ 내 순위를 멘트 바로 아래에 표시 (업로드 후 갱신)
+    // ✨ 업로드 후 순위를 score-display 옆에 표시
     await uploadCircleScore(finalScore);
-    showMyRankBelowMessage(finalScore);
 
     // ✨ 빨간 가이드라인 먼저, 그 위에 파란 선 리플레이
     await replayDrawing(points, centerX, centerY, avgRadius);
@@ -117,9 +116,9 @@ async function calculateCircleScore() {
     }
 }
 
-// ✨ 멘트 바로 아래에 내 순위를 표시하는 함수
-async function showMyRankBelowMessage(myScore) {
-    if (!initSupabase()) return;
+// ✨ score-display 옆에 현재 순위를 표시하는 함수
+async function showMyRankNextToScore() {
+    if (!initSupabase() || !lastUploadedId) return;
     try {
         const { data: allData } = await window._supabase
             .from('circle_rankings')
@@ -128,26 +127,26 @@ async function showMyRankBelowMessage(myScore) {
             .order('created_at', { ascending: false });
 
         if (!allData) return;
-
         const myRank = allData.findIndex(p => p.id === lastUploadedId);
         if (myRank === -1) return;
 
-        // 기존 순위 표시가 있으면 제거
-        const existing = document.getElementById('my-circle-rank-hint');
-        if (existing) existing.remove();
+        const scoreDisplay = document.getElementById('score-display');
+        if (scoreDisplay) {
+            // 기존 순위 span이 있으면 제거
+            const existing = document.getElementById('my-rank-badge');
+            if (existing) existing.remove();
 
-        const rankDiv = document.createElement('div');
-        rankDiv.id = 'my-circle-rank-hint';
-        rankDiv.style.marginTop = '8px';
-        rankDiv.style.fontSize = '1rem';
-        rankDiv.style.fontWeight = 'bold';
-        rankDiv.style.color = '#b45309';
-        rankDiv.innerHTML = `🏅 현재 <strong>${myRank + 1}위</strong> (${myScore}%)`;
-
-        const messageDisplay = document.getElementById('message');
-        messageDisplay.insertAdjacentElement('afterend', rankDiv);
+            const rankSpan = document.createElement('span');
+            rankSpan.id = 'my-rank-badge';
+            rankSpan.style.fontSize = '3rem';
+            rankSpan.style.fontWeight = 'bold';
+            rankSpan.style.color = '#b45309';
+            rankSpan.style.marginLeft = '16px';
+            rankSpan.innerText = `현재 ${myRank + 1}위`;
+            scoreDisplay.appendChild(rankSpan);
+        }
     } catch (err) {
-        console.error("내 순위 표시 실패:", err);
+        console.error("순위 표시 실패:", err);
     }
 }
 
@@ -224,6 +223,8 @@ async function uploadCircleScore(score) {
         if (data && data.length > 0) { lastUploadedId = data[0].id; }
         if (typeof lockCircleSubmitTime === 'function') lockCircleSubmitTime();
         fetchCircleRankings();
+        // ✨ 업로드 완료 후 score-display 옆에 순위 표시
+        showMyRankNextToScore();
     } catch (err) { 
         console.error("원 그리기 업로드 실패:", err); 
     }
