@@ -2,7 +2,7 @@
    🎨 1. 전역 스타일 및 기본 리셋 (모바일 방어)
    ========================================== */
 * {
-    box-sizing: border-box; /* 패딩 때문에 가로가 터지는 것을 완벽 방어 */
+    box-sizing: border-box; 
 }
 
 body {
@@ -13,7 +13,7 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;    
-    justify-content: flex-start; /* 게임 화면에서는 상단부터 차곡차곡 정렬 */
+    justify-content: flex-start; /* 상단부터 정렬 */
     min-height: 100vh;
     width: 100%;
     max-width: 100vw;
@@ -21,18 +21,8 @@ body {
     transition: background 0.3s ease; 
 }
 
-/* 게임 화면 상단 제목 스타일 */
-h1 {
-    color: #333;
-    font-size: 1.8rem;
-    margin: 10px auto 25px auto; 
-    text-align: center;          
-    width: 100%;                 
-    max-width: 500px;            
-}
-
 /* ==========================================
-   🔑 2. 닉네임 입력 영역 (로그인 상태일 때만 완전한 화면 정중앙 배치)
+   🔑 2. 닉네임 입력 영역 (정중앙 레이아웃 격리)
    ========================================== */
 #login-screen {
     width: 100%;
@@ -53,7 +43,6 @@ h1 {
     padding: 0;
 }
 
-/* 닉네임 로그인 페이지 전 전용 레이아웃 설정 */
 body.nickname-page {
     background-image: url('images/nickbgimage.png');
     background-size: cover;
@@ -62,7 +51,7 @@ body.nickname-page {
     background-attachment: fixed; 
     width: 100vw;
     min-height: 100vh;
-    justify-content: center; /* 로그인 스크린만 수직 중앙 정렬 처리 */
+    justify-content: center; /* 닉네임 화면만 수직 중앙 정렬 활성화 */
 }
 
 #user-setup p {
@@ -112,13 +101,41 @@ body.nickname-page {
 }
 
 /* ==========================================
-   🕹️ 3. 게임 레이아웃 및 탭 메뉴
+   🕹️ 3. 게임 레이아웃 및 상단 독립 배너 이미지
    ========================================== */
 #game-area {
     width: 100%;
     max-width: 500px;    
     margin: 10px auto;   
     text-align: center;
+}
+
+/* ✨ 새롭게 최적화된 상단 배너 이미지 규칙 (클릭 전용 버튼화) */
+#game-banner {
+    display: block;
+    width: 100%;
+    max-width: 500px;
+    height: auto;               /* 프레임 높이 밸런스 유지를 위해 종횡비 고정 */
+    border-radius: 12px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.08);
+    cursor: pointer;            /* 마우스 오버 시 손가락 모양 활성화 */
+    user-select: none;
+    margin: 10px auto 15px auto;
+    transition: transform 0.15s ease, opacity 0.15s ease;
+}
+
+#game-banner:active {
+    transform: scale(0.98);     /* 클릭했을 때 꾹 눌리는 듯한 입체 효과 부여 */
+    opacity: 0.9;
+}
+
+/* 배너 아래 배치된 환영 문구 스타일 */
+.welcome-text {
+    color: #333;
+    font-size: 1.05rem;
+    font-weight: 500;
+    margin: 0 auto 25px auto;
+    width: 100%;
 }
 
 .tab-menu {
@@ -284,42 +301,4 @@ hr {
 .ranking-list li span {
     font-weight: bold;
     color: #007bff;
-}
-
-/* ==========================================
-   ✨ 7. 통합형 로고 이미지 웰컴 배너 스타일
-   ========================================== */
-.welcome-banner {
-    /* 💡 배경으로 logoimage.png를 안전하게 장착 */
-    background-image: url('images/logoimage.png'); 
-    
-    /* 🔒 이미지 원본 크기에 왜곡되지 않고 현재 박스의 레이아웃 높이를 절대 고정 수호 */
-    background-size: cover;       /* 상자 크기에 꽉 차게 이미지 리사이징 */
-    background-position: center;  /* 중심점을 기준으로 랜드스케이프 크롭 판정 */
-    background-repeat: no-repeat;
-    
-    /* 🎨 안정적인 상자 높이값 및 내부 여백 밸런스 유지 */
-    padding: 25px 20px;          
-    border-radius: 12px;         
-    margin: 10px auto 25px auto; 
-    width: 100%;
-    max-width: 500px;            
-    box-shadow: 0 4px 12px rgba(0,0,0,0.08); 
-    
-    /* 글자 가독성 보호용 2중 화이트 외곽선 아우라 효과 */
-    text-shadow: 0 1px 4px rgba(255, 255, 255, 1), 0 0 2px rgba(255, 255, 255, 0.8);
-}
-
-.welcome-banner h1 {
-    color: #111;
-    font-size: 1.7rem;
-    font-weight: bold;
-    width: 100%;
-    text-align: center;
-}
-
-.welcome-banner p {
-    color: #333;
-    font-size: 1.05rem;
-    font-weight: 500;
 }
