@@ -9,11 +9,12 @@ body {
     font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
     background-color: #f4f7f6;
     margin: 0;
-    padding: 20px 15px;
+    /* 💡 상단 패딩을 0으로 깎아서 게임 화면 진입 시 천장에 바짝 붙도록 처리 */
+    padding: 0 15px 20px 15px; 
     display: flex;
     flex-direction: column;
     align-items: center;    
-    justify-content: flex-start; /* 상단부터 정렬 */
+    justify-content: flex-start; 
     min-height: 100vh;
     width: 100%;
     max-width: 100vw;
@@ -51,7 +52,9 @@ body.nickname-page {
     background-attachment: fixed; 
     width: 100vw;
     min-height: 100vh;
-    justify-content: center; /* 닉네임 화면만 수직 중앙 정렬 활성화 */
+    /* 💡 로그인 전용 닉네임 페이지일 때는 다시 정중앙에 수직 정렬되도록 패딩 리셋 */
+    padding: 20px 15px;
+    justify-content: center; 
 }
 
 #user-setup p {
@@ -76,6 +79,7 @@ body.nickname-page {
     text-align: center; 
 }
 
+// 닉네임 포커스선
 #username-input:focus {
     border-color: #28a745;
 }
@@ -106,30 +110,32 @@ body.nickname-page {
 #game-area {
     width: 100%;
     max-width: 500px;    
-    margin: 10px auto;   
+    /* 💡 위쪽 마진을 완전 차단하여 상단 여백 제거 */
+    margin: 0 auto 10px auto;   
     text-align: center;
 }
 
-/* ✨ 새롭게 최적화된 상단 배너 이미지 규칙 (클릭 전용 버튼화) */
+/* ✨ 상단 여백 전면 제로화가 적용된 배너 디자인 명세 */
 #game-banner {
     display: block;
     width: 100%;
     max-width: 500px;
-    height: auto;               /* 프레임 높이 밸런스 유지를 위해 종횡비 고정 */
-    border-radius: 12px;
+    height: auto;               
+    border-radius: 0 0 12px 12px; /* 상단 여백이 없으므로, 위쪽 모서리는 깎지 않고 아래쪽만 부드럽게 라운딩 처리 */
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
-    cursor: pointer;            /* 마우스 오버 시 손가락 모양 활성화 */
+    cursor: pointer;            
     user-select: none;
-    margin: 10px auto 15px auto;
+    /* 💡 상단 마진을 0으로 꽉 맞물려 밀착을 유도합니다 */
+    margin: 0 auto 15px auto;
     transition: transform 0.15s ease, opacity 0.15s ease;
 }
 
 #game-banner:active {
-    transform: scale(0.98);     /* 클릭했을 때 꾹 눌리는 듯한 입체 효과 부여 */
+    transform: scale(0.98);     
     opacity: 0.9;
 }
 
-/* 배너 아래 배치된 환영 문구 스타일 */
+/* 배너 아래 배치된 안내 문구 스타일 */
 .welcome-text {
     color: #333;
     font-size: 1.05rem;
