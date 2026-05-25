@@ -42,18 +42,18 @@ async function loadGameConfig() {
         
         const { data, error } = await window._supabase
             .from('game_config')
-            .select('config_key, config_value');
+            .select('key, value');
 
         if (error) throw error;
 
         if (data && data.length > 0) {
             data.forEach(item => {
-                if (item.config_key === 'rps_threshold') {
-                    RPS_THRESHOLD = parseInt(item.config_value, 10);
-                } else if (item.config_key === 'circle_threshold') {
-                    CIRCLE_THRESHOLD = parseInt(item.config_value, 10);
-                } else if (item.config_key === 'abc_threshold') {
-                    ABC_THRESHOLD = parseInt(item.config_value, 10);
+                if (item.key === 'rps_threshold') {
+                    RPS_THRESHOLD = parseInt(item.value, 10);
+                } else if (item.key === 'circle_threshold') {
+                    CIRCLE_THRESHOLD = parseInt(item.value, 10);
+                } else if (item.key === 'abc_threshold') {
+                    ABC_THRESHOLD = parseInt(item.value, 10);
                 }
             });
             console.log(`[Config 로드 완료] 가위바위보: ${RPS_THRESHOLD}, 원 그리기: ${CIRCLE_THRESHOLD}, 앞뒤 맞추기: ${ABC_THRESHOLD}`);
