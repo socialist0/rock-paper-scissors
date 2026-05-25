@@ -19,9 +19,11 @@
     </div>
 
     <div id="game-area" style="display: none;">
-        <h1 id="main-title" style="cursor: pointer; user-select: none;">잠시만 혹시...?</h1>
         
-        <p><strong id="display-username"></strong>님, 반갑습니다! 원하시는 게임을 선택하세요.</p>
+        <div class="welcome-banner">
+            <h1 id="main-title" style="cursor: pointer; user-select: none; margin: 0 0 10px 0;">잠시만 혹시...?</h1>
+            <p style="margin: 0;"><strong id="display-username"></strong>님, 반갑습니다! 원하시는 게임을 선택하세요.</p>
+        </div>
         
         <div class="tab-menu">
             <button id="tab-rps" class="tab-btn active" onclick="switchGame('rps')">✌️ 가위바위보</button>
