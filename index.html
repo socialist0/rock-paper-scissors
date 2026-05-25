@@ -146,8 +146,11 @@
             </div>
 
             <div style="font-size: 0.95rem; margin: 10px 0 5px 0; font-weight: normal; line-height: 1.5; text-align: center;">
-                💡 <strong><span id="abc-threshold-hint">9</span>연승</strong>을 달성하면 깜짝 축하 페이지를 만나세요!
+                💡 <strong><span id="abc-threshold-hint">9</span>연승</strong>을 달성하면 깜짝 축하 페이지를 만날 수 있어요!
             </div>
+
+            <div id="letter-instruction">5초 이내에 가운데 글자의 앞글자와 뒷글자를 맞춰주세요.</div>
+
 
             <div id="letter-timer">5.00초</div>
 
@@ -162,13 +165,11 @@
                 </div>
             </div>
 
-            <div id="letter-instruction">5초 이내에 가운데 글자의 앞글자와 뒷글자를 맞춰주세요.</div>
+            <button id="letter-start-btn" onclick="initLetterGame()">게임 시작</button>
 
             <div id="letter-choices-container"></div>
 
             <div id="letter-result-message" class="letter-result"></div>
-
-            <button id="letter-start-btn" onclick="initLetterGame()">게임 시작</button>
 
             <hr>
             <div class="ranking-board">
