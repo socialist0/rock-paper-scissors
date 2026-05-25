@@ -110,7 +110,7 @@
 <script>
     const urlParams = new URLSearchParams(window.location.search);
     const urlScore = urlParams.get('score');
-    const game = urlParams.get('game'); // 'rps' 또는 없으면 원 그리기
+    const game = urlParams.get('game'); // 'rps', 'abc' 또는 없으면 원 그리기
 
     // ============================
     // 가위바위보 1등 달성 케이스
@@ -135,6 +135,31 @@
             // 티켓 즉시 폐기
             sessionStorage.removeItem('rps_celebration_verified');
             sessionStorage.removeItem('rps_celebration_score');
+        }
+
+    // ============================
+    // 앞뒤 맞추기 연승 달성 케이스
+    // ============================
+    } else if (game === 'abc') {
+        const celebrationToken = sessionStorage.getItem('abc_celebration_verified');
+        const verifiedScore = sessionStorage.getItem('abc_celebration_score');
+
+        if (celebrationToken !== 'true' || !verifiedScore || urlScore !== verifiedScore) {
+            alert("🚫 잘못된 접근입니다. 정상적인 경로로 이용해 주세요!");
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('main-title').innerText = '👑 PERFECT STREAK 👑';
+            document.getElementById('sub-title').innerText = '앞뒤 맞추기 명예의 전당 달성!';
+            document.getElementById('display-score').innerText = verifiedScore + '연승';
+            document.getElementById('main-desc').innerHTML =
+                `단 한 글자도 놓치지 않은 ${verifiedScore}연승의 기록.<br>` +
+                `번개 같은 반응 속도와 완벽한 순서 감각으로<br>` +
+                `앞뒤 맞추기 명예의 전당에 이름을 올렸습니다!`;
+            document.getElementById('retry-btn').innerText = '다시 도전하기';
+
+            // 티켓 즉시 폐기
+            sessionStorage.removeItem('abc_celebration_verified');
+            sessionStorage.removeItem('abc_celebration_score');
         }
 
     // ============================

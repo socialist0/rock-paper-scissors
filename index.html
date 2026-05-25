@@ -25,10 +25,12 @@
         <p class="welcome-text"><strong id="display-username"></strong>님, 반갑습니다! 원하시는 게임을 선택하세요.</p>
         
         <div class="tab-menu">
-            <button id="tab-rps" class="tab-btn active" onclick="switchGame('rps')">✌️ 가위바위보</button>
-            <button id="tab-circle" class="tab-btn" onclick="switchGame('circle')">⭕ 원 그리기</button>
+            <button id="tab-rps"    class="tab-btn active" onclick="switchGame('rps')">✌️ 가위바위보</button>
+            <button id="tab-circle" class="tab-btn"        onclick="switchGame('circle')">⭕ 원 그리기</button>
+            <button id="tab-letter" class="tab-btn"        onclick="switchGame('letter')">🔤 앞뒤 맞추기</button>
         </div>
 
+        <!-- ===== 게임 1: 가위바위보 ===== -->
         <div id="content-rps" class="game-content content">
             <div class="score-board">
                 <p>나의 현재 연승: <span id="user-score">0</span></p>
@@ -56,6 +58,7 @@
             </div>
         </div>
 
+        <!-- ===== 게임 2: 원 그리기 ===== -->
         <div id="content-circle" class="game-content content" style="display: none;">
             <div id="ui-container">
                 <h2 style="font-size: 1.3rem; margin-bottom: 5px;">가장 완벽한 원을 그려보세요!</h2>
@@ -135,6 +138,47 @@
             </div>
         </div>
 
+        <!-- ===== 게임 3: 앞뒤 맞추기 ===== -->
+        <div id="content-letter" class="game-content content" style="display: none;">
+
+            <div id="letter-score-board">
+                <div>현재 연승: <span id="letter-current-score">0</span></div>
+            </div>
+
+            <div style="font-size: 0.95rem; margin: 10px 0 5px 0; font-weight: normal; line-height: 1.5; text-align: center;">
+                💡 <strong><span id="abc-threshold-hint">9</span>연승</strong>을 달성하면 깜짝 축하 페이지를 만나세요!
+            </div>
+
+            <div id="letter-timer">5.00초</div>
+
+            <div id="letter-quiz-area">
+                <!-- 초기 튜토리얼 화면 -->
+                <div style="display:flex; align-items:center; justify-content:center; font-size:3.5rem; font-weight:bold; color:#a0aec0; gap:10px;">
+                    <span>A</span>
+                    <span>-</span>
+                    <span style="color:#2b6cb0; border:3px solid #2b6cb0; border-radius:12px; width:70px; height:70px; display:flex; align-items:center; justify-content:center; background-color:#ebf8ff;">B</span>
+                    <span>-</span>
+                    <span>C</span>
+                </div>
+            </div>
+
+            <div id="letter-instruction">5초 이내에 가운데 글자의 앞글자와 뒷글자를 맞춰주세요.</div>
+
+            <div id="letter-choices-container"></div>
+
+            <div id="letter-result-message" class="letter-result"></div>
+
+            <button id="letter-start-btn" onclick="initLetterGame()">게임 시작</button>
+
+            <hr>
+            <div class="ranking-board">
+                <h3>🌍 앞뒤 맞추기 전 세계 Top 10 연승 기록</h3>
+                <ul id="letterRankingList" class="ranking-list">
+                    <li>데이터를 불러오는 중...</li>
+                </ul>
+            </div>
+        </div>
+
     </div>
 
 <script src="config.js"></script>
@@ -142,5 +186,6 @@
 <script src="security.js"></script>
 <script src="game_rps.js"></script>
 <script src="game_circle.js"></script>
+<script src="game_letter.js"></script>
 </body>
 </html>

@@ -79,7 +79,6 @@ body.nickname-page {
     text-align: center; 
 }
 
-// 닉네임 포커스선
 #username-input:focus {
     border-color: #28a745;
 }
@@ -110,22 +109,19 @@ body.nickname-page {
 #game-area {
     width: 100%;
     max-width: 500px;    
-    /* 💡 위쪽 마진을 완전 차단하여 상단 여백 제거 */
     margin: 0 auto 10px auto;   
     text-align: center;
 }
 
-/* ✨ 상단 여백 전면 제로화가 적용된 배너 디자인 명세 */
 #game-banner {
     display: block;
     width: 100%;
     max-width: 500px;
     height: auto;               
-    border-radius: 0 0 12px 12px; /* 상단 여백이 없으므로, 위쪽 모서리는 깎지 않고 아래쪽만 부드럽게 라운딩 처리 */
+    border-radius: 0 0 12px 12px;
     box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     cursor: pointer;            
     user-select: none;
-    /* 💡 상단 마진을 0으로 꽉 맞물려 밀착을 유도합니다 */
     margin: 0 auto 15px auto;
     transition: transform 0.15s ease, opacity 0.15s ease;
 }
@@ -135,7 +131,6 @@ body.nickname-page {
     opacity: 0.9;
 }
 
-/* 배너 아래 배치된 안내 문구 스타일 */
 .welcome-text {
     color: #333;
     font-size: 1.05rem;
@@ -264,7 +259,146 @@ body.nickname-page {
 }
 
 /* ==========================================
-   🌍 6. 공통 명예의 전당 (랭킹 보드) 스타일
+   🔤 6. 게임 3: 앞뒤 맞추기 스타일
+   ========================================== */
+#letter-score-board {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 15px;
+    font-size: 1.05rem;
+    font-weight: bold;
+    color: #4a5568;
+    background: #edf2f7;
+    padding: 10px 15px;
+    border-radius: 10px;
+    width: 100%;
+}
+
+#letter-score-board #letter-high-score-val { color: #e53e3e; }
+#letter-score-board #letter-current-score  { color: #2b6cb0; }
+
+#letter-timer {
+    font-size: 2.2rem;
+    font-weight: bold;
+    color: #2d3748;
+    margin: 5px 0;
+    transition: color 0.1s;
+}
+
+#letter-timer.letter-danger {
+    color: #e53e3e;
+    animation: letter-blink 0.3s infinite alternate;
+}
+
+@keyframes letter-blink {
+    from { opacity: 1; }
+    to   { opacity: 0.5; }
+}
+
+#letter-quiz-area {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 15px;
+    margin: 15px 0;
+    width: 100%;
+}
+
+.letter-blank-box {
+    width: 70px;
+    height: 70px;
+    border: 3px dashed #cbd5e0;
+    border-radius: 12px;
+    font-size: 3rem;
+    font-weight: bold;
+    color: #ed8936;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background-color: #f7fafc;
+    flex-shrink: 0;
+}
+
+#letter-target-letter {
+    font-size: 6rem;
+    font-weight: bold;
+    color: #2b6cb0;
+    text-transform: uppercase;
+    line-height: 1;
+}
+
+#letter-instruction {
+    font-size: 1rem;
+    color: #4a5568;
+    min-height: 40px;
+    line-height: 1.4;
+    margin-top: 10px;
+    width: 100%;
+    text-align: center;
+}
+
+#letter-choices-container {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 15px;
+    margin-top: 25px;
+    width: 100%;
+    min-height: 160px;
+}
+
+.letter-choice-btn {
+    font-size: 2.2rem;
+    padding: 12px 0;
+    border: 2px solid #e2e8f0;
+    border-radius: 12px;
+    background-color: white;
+    cursor: pointer;
+    transition: all 0.1s ease;
+    font-weight: 600;
+    text-transform: uppercase;
+}
+
+.letter-choice-btn:active {
+    transform: scale(0.95);
+}
+
+.letter-choice-btn.letter-selected {
+    background-color: #ed8936;
+    color: white;
+    border-color: #ed8936;
+}
+
+#letter-result-message {
+    font-size: 1.05rem;
+    min-height: 26px;
+    margin-top: 15px;
+    font-weight: bold;
+    white-space: pre-line;
+    width: 100%;
+    text-align: center;
+}
+
+#letter-result-message.success { color: #38a169; }
+#letter-result-message.fail    { color: #e53e3e; }
+
+#letter-start-btn {
+    margin-top: 20px;
+    padding: 12px 30px;
+    font-size: 1.1rem;
+    font-weight: bold;
+    background-color: #2b6cb0;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    width: 100%;
+    transition: background-color 0.2s;
+}
+
+#letter-start-btn:hover { background-color: #2c5282; }
+
+/* ==========================================
+   🌍 7. 공통 명예의 전당 (랭킹 보드) 스타일
    ========================================== */
 hr {
     width: 100%;

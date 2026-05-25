@@ -5,8 +5,9 @@ let currentUsername = "";
 let evaluationMents = [];
 
 // ✨ Supabase game_config 테이블에서 불러올 게임 조건 전역변수
-let RPS_THRESHOLD = 9;      
-let CIRCLE_THRESHOLD = 95;  
+let RPS_THRESHOLD    = 9;
+let CIRCLE_THRESHOLD = 95;
+let ABC_THRESHOLD    = 9;
 
 /**
  * config.js에서 이미 선언된 supabaseUrl과 supabaseKey를
@@ -51,9 +52,11 @@ async function loadGameConfig() {
                     RPS_THRESHOLD = parseInt(item.config_value, 10);
                 } else if (item.config_key === 'circle_threshold') {
                     CIRCLE_THRESHOLD = parseInt(item.config_value, 10);
+                } else if (item.config_key === 'abc_threshold') {
+                    ABC_THRESHOLD = parseInt(item.config_value, 10);
                 }
             });
-            console.log(`[Config 로드 완료] 가위바위보 임계값: ${RPS_THRESHOLD}, 원 그리기 임계값: ${CIRCLE_THRESHOLD}`);
+            console.log(`[Config 로드 완료] 가위바위보: ${RPS_THRESHOLD}, 원 그리기: ${CIRCLE_THRESHOLD}, 앞뒤 맞추기: ${ABC_THRESHOLD}`);
         }
     } catch (err) {
         console.warn("설정값 원격 로드 실패, 로컬 기본값으로 세팅을 수호합니다:", err);
@@ -63,18 +66,20 @@ async function loadGameConfig() {
 }
 
 function updateThresholdUI() {
-    const rpsHint = document.getElementById('rps-threshold-hint');
+    const rpsHint    = document.getElementById('rps-threshold-hint');
     const circleHint = document.getElementById('circle-threshold-hint');
-    if (rpsHint) rpsHint.innerText = RPS_THRESHOLD;
+    const abcHint    = document.getElementById('abc-threshold-hint');
+    if (rpsHint)    rpsHint.innerText    = RPS_THRESHOLD;
     if (circleHint) circleHint.innerText = CIRCLE_THRESHOLD;
+    if (abcHint)    abcHint.innerText    = ABC_THRESHOLD;
 }
 
 function initNicknamePageStyles() {
     document.body.classList.add('nickname-page');
     const loginScreen = document.getElementById('login-screen');
-    const gameArea = document.getElementById('game-area');
+    const gameArea    = document.getElementById('game-area');
     if (loginScreen) loginScreen.style.display = 'flex';
-    if (gameArea) gameArea.style.display = 'none';
+    if (gameArea)    gameArea.style.display     = 'none';
 }
 
 function initNicknameInput() {
@@ -125,36 +130,47 @@ async function saveUsername() {
     document.body.classList.remove('nickname-page');
 
     const loginScreen = document.getElementById('login-screen');
-    const gameArea = document.getElementById('game-area');
+    const gameArea    = document.getElementById('game-area');
     if (loginScreen) loginScreen.style.display = 'none';
-    if (gameArea) gameArea.style.display = 'block';
+    if (gameArea)    gameArea.style.display     = 'block';
 
-    if (typeof loadRpsRankings === 'function') loadRpsRankings();
+    if (typeof loadRpsRankings    === 'function') loadRpsRankings();
     if (typeof loadCircleRankings === 'function') loadCircleRankings();
+    if (typeof loadLetterRankings === 'function') loadLetterRankings();
 }
 
+// ==========================================
+// 2. 탭 전환 (3탭으로 확장)
+// ==========================================
 function switchGame(gameType) {
-    const rpsContent = document.getElementById('content-rps');
+    const rpsContent    = document.getElementById('content-rps');
     const circleContent = document.getElementById('content-circle');
-    const rpsTab = document.getElementById('tab-rps');
-    const circleTab = document.getElementById('tab-circle');
+    const letterContent = document.getElementById('content-letter');
+    const rpsTab        = document.getElementById('tab-rps');
+    const circleTab     = document.getElementById('tab-circle');
+    const letterTab     = document.getElementById('tab-letter');
+
+    // 모두 숨기고 탭 비활성화
+    [rpsContent, circleContent, letterContent].forEach(el => { if (el) el.style.display = 'none'; });
+    [rpsTab, circleTab, letterTab].forEach(el => { if (el) el.classList.remove('active'); });
 
     if (gameType === 'rps') {
         if (rpsContent) rpsContent.style.display = 'flex';
-        if (circleContent) circleContent.style.display = 'none';
-        if (rpsTab) rpsTab.classList.add('active');
-        if (circleTab) circleTab.classList.remove('active');
-    } else {
-        if (rpsContent) rpsContent.style.display = 'none';
+        if (rpsTab)     rpsTab.classList.add('active');
+
+    } else if (gameType === 'circle') {
         if (circleContent) circleContent.style.display = 'flex';
-        if (circleTab) circleTab.classList.add('active');
-        if (rpsTab) rpsTab.classList.remove('active');
+        if (circleTab)     circleTab.classList.add('active');
         if (typeof resizeCanvas === 'function') resizeCanvas();
+
+    } else if (gameType === 'letter') {
+        if (letterContent) letterContent.style.display = 'flex';
+        if (letterTab)     letterTab.classList.add('active');
     }
 }
 
 window.addEventListener('load', () => {
-    // 💡 [배너 리매핑] 과거 글자 h1 대신 이미지 배너를 클릭했을 때 로그아웃 처리 실행
+    // 💡 배너 클릭 시 로그아웃 처리
     const gameBanner = document.getElementById('game-banner');
     gameBanner?.addEventListener('click', function() {
         const gameArea = document.getElementById('game-area');
@@ -164,7 +180,6 @@ window.addEventListener('load', () => {
         if (loginScreen) loginScreen.style.display = 'flex';
 
         document.body.classList.add('nickname-page');
-
         currentUsername = null;
         
         const nicknameInput = document.getElementById('username-input');
