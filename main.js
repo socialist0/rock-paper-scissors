@@ -67,6 +67,9 @@ async function loadGameConfig() {
 // 1. 플랫폼 초기화 및 파일 프리로딩 이벤트
 // ==========================================
 window.addEventListener('load', async () => {
+    // 💡 [배경 분리] 최초 페이지 진입 시 body에 닉네임 페이지 전용 클래스 부여
+    document.body.classList.add('nickname-page');
+
     initSupabase();
     await loadGameConfig();  // 게임 조건을 가장 먼저 로드
     await loadMentsFromFile(); 
@@ -136,6 +139,9 @@ function saveUsername() {
         displayUsername.innerText = currentUsername;
     }
     
+    // 💡 [배경 분리] 게임 화면 전환 시 배경 이미지 제거 (기존 게임판 단색 레이아웃 유지)
+    document.body.classList.remove('nickname-page');
+
     document.getElementById('user-setup').style.display = 'none';
     document.getElementById('game-area').style.display = 'block';
 
@@ -172,6 +178,9 @@ window.addEventListener('load', () => {
 
         const userSetup = document.getElementById('user-setup');
         if (userSetup) userSetup.style.display = 'block';
+
+        // 💡 [배경 분리] 로고 클릭으로 로그인 화면 복귀 시 배경 이미지 다시 켜기
+        document.body.classList.add('nickname-page');
 
         currentUsername = null;
         
