@@ -70,6 +70,9 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 | `ment.json` | 원 그리기 최종 점수대별(0% ~ 100%) 맞춤형 평가 피드백 멘트 데이터셋 (20단계) |
 | `config.js` | Supabase URL 및 anon_key 보관 |
 | `project.md` | [현재 파일] 프로젝트 개발 명세 및 전체 히스토리 관리 가이드 문서 |
+| `images` | **디렉토리** | 각종 이미지를 위한 폴더를 만듬.|
+
+
 
 ---
 
