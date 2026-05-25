@@ -278,3 +278,10 @@ async function fetchCircleRankings() {
         console.error("원 랭킹 로드 실패:", err); 
     }
 }
+function loadCircleRankings() {
+    fetchCircleRankings();
+}
+
+window.addEventListener('load', () => {
+    initCircleCanvas();
+});

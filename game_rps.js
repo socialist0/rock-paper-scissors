@@ -169,3 +169,6 @@ async function fetchGlobalRankings({ showMyRank = false, myScore = null } = {}) 
         console.error("가위바위보 랭킹 로드 실패:", err); 
     }
 }
+function loadRpsRankings() {
+    fetchGlobalRankings();
+}
