@@ -5,10 +5,8 @@ let currentUsername = "";
 let evaluationMents = [];
 
 // ✨ Supabase game_config 테이블에서 불러올 게임 조건 전역변수
-// 👉 값은 앱 시작 시 loadGameConfig()에서 자동으로 채워집니다.
-// 👉 fetch 실패 시 아래 기본값(fallback)으로 동작합니다.
-let RPS_THRESHOLD = 9;      // 가위바위보 축하 페이지 진입 기준 연승 수
-let CIRCLE_THRESHOLD = 95;  // 원 그리기 축하 페이지 진입 기준 점수
+let RPS_THRESHOLD = 9;      
+let CIRCLE_THRESHOLD = 95;  
 
 /**
  * config.js에서 이미 선언된 supabaseUrl과 supabaseKey를
@@ -35,119 +33,104 @@ function initSupabase() {
 }
 
 // ==========================================
-// Supabase game_config 테이블에서 게임 조건 로드
+// 1. 초기 실행 및 공통 유틸리티 모듈
 // ==========================================
 async function loadGameConfig() {
-    if (!initSupabase()) return;
     try {
+        if (!initSupabase()) return;
+        
         const { data, error } = await window._supabase
             .from('game_config')
-            .select('key, value');
+            .select('config_key, config_value');
 
         if (error) throw error;
 
-        data.forEach(row => {
-            if (row.key === 'rps_threshold')    RPS_THRESHOLD    = Number(row.value);
-            if (row.key === 'circle_threshold') CIRCLE_THRESHOLD = Number(row.value);
-        });
-
-        // 값이 로드된 후 index.html 안내 문구를 동적으로 업데이트
-        const rpsHint = document.getElementById('rps-threshold-hint');
-        if (rpsHint) rpsHint.innerText = RPS_THRESHOLD;
-
-        const circleHint = document.getElementById('circle-threshold-hint');
-        if (circleHint) circleHint.innerText = CIRCLE_THRESHOLD;
-
+        if (data && data.length > 0) {
+            data.forEach(item => {
+                if (item.config_key === 'rps_threshold') {
+                    RPS_THRESHOLD = parseInt(item.config_value, 10);
+                } else if (item.config_key === 'circle_threshold') {
+                    CIRCLE_THRESHOLD = parseInt(item.config_value, 10);
+                }
+            });
+            console.log(`[Config 로드 완료] 가위바위보 임계값: ${RPS_THRESHOLD}, 원 그리기 임계값: ${CIRCLE_THRESHOLD}`);
+        }
     } catch (err) {
-        console.warn("game_config 로드 실패, 기본값으로 동작합니다:", err);
+        console.warn("설정값 원격 로드 실패, 로컬 기본값으로 세팅을 수호합니다:", err);
+    } finally {
+        updateThresholdUI();
     }
 }
 
-// ==========================================
-// 1. 플랫폼 초기화 및 파일 프리로딩 이벤트
-// ==========================================
-window.addEventListener('load', async () => {
-    // 💡 [배경 분리] 최초 페이지 진입 시 body에 닉네임 페이지 전용 클래스 부여
+function updateThresholdUI() {
+    const rpsHint = document.getElementById('rps-threshold-hint');
+    const circleHint = document.getElementById('circle-threshold-hint');
+    if (rpsHint) rpsHint.innerText = RPS_THRESHOLD;
+    if (circleHint) circleHint.innerText = CIRCLE_THRESHOLD;
+}
+
+function initNicknamePageStyles() {
     document.body.classList.add('nickname-page');
-
-    initSupabase();
-    await loadGameConfig();  // 게임 조건을 가장 먼저 로드
-    await loadMentsFromFile(); 
-    initNicknameInput();
-    
-    if (typeof fetchGlobalRankings === 'function') {
-        fetchGlobalRankings();
-    }
-    if (typeof fetchCircleRankings === 'function') {
-        fetchCircleRankings();
-    }
-    if (typeof initCircleCanvas === 'function') {
-        initCircleCanvas();
-    }
-});
-
-async function loadMentsFromFile() {
-    try {
-        const response = await fetch('ment.json');
-        evaluationMents = await response.json();
-    } catch (err) {
-        evaluationMents = [
-            {max: 100, min: 80, text: "와우, 멋지고 완벽한 동그라미입니다! 👍"},
-            {max: 79, min: 40, text: "제법 원 모양을 갖추었네요! 🙂"},
-            {max: 39, min: 0, text: "찌그러진 감자 발견! 다시 그려봐요! 🥔"}
-        ];
-    }
+    const loginScreen = document.getElementById('login-screen');
+    const gameArea = document.getElementById('game-area');
+    if (loginScreen) loginScreen.style.display = 'flex';
+    if (gameArea) gameArea.style.display = 'none';
 }
 
 function initNicknameInput() {
     const input = document.getElementById('username-input');
-    if (input) {
-        // 💡 안내 문구를 한글 4자 / 영어 8자로 수정했습니다.
-        input.placeholder = "한글 4자 이내 / 영어 8자 이내";
-    }
-}
-
-// ==========================================
-// 2. 닉네임 로그인 및 게임 선택 탭 시스템
-// ==========================================
-function getByteLength(str) {
-    return new TextEncoder().encode(str).length;
-}
-
-function saveUsername() {
-    const input = document.getElementById('username-input');
     if (!input) return;
     
-    const username = input.value.trim();
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            saveUsername();
+        }
+    });
+}
 
-    if (!username) {
+function validateUsername(name) {
+    const korRegex = /^[가-힣ㄱ-ㅎㅏ-ㅣ]+$/;
+    const engRegex = /^[a-zA-Z]+$/;
+
+    if (korRegex.test(name)) {
+        return name.length <= 4;
+    } else if (engRegex.test(name)) {
+        return name.length <= 8;
+    }
+    return false;
+}
+
+async function saveUsername() {
+    const input = document.getElementById('username-input');
+    if (!input) return;
+
+    const name = input.value.trim();
+
+    if (!name) {
         alert("닉네임을 입력해 주세요!");
         return;
     }
 
-    const byteLength = getByteLength(username);
-    // 💡 최대 바이트를 12로 변경하여 한글 4자(12바이트), 영문 8자(8바이트) 제한을 충족합니다.
-    if (byteLength > 12) {
-        alert(`닉네임이 너무 깁니다!\n* 영문·숫자는 최대 8자, 한글은 최대 4자까지 가능합니다.`);
+    if (!validateUsername(name)) {
+        alert("닉네임 규칙을 확인해 주세요!\n- 한글: 4자 이내 (공백/특수문자/숫자 불가)\n- 영어: 8자 이내 (공백/특수문자/숫자 불가)");
         return;
     }
 
-    currentUsername = username;
+    currentUsername = name;
     
-    const displayUsername = document.getElementById('display-username');
-    if (displayUsername) {
-        displayUsername.innerText = currentUsername;
-    }
-    
-    // 💡 [배경 분리] 게임 화면 전환 시 배경 이미지 제거 (기존 게임판 단색 레이아웃 유지)
+    const displayElement = document.getElementById('display-username');
+    if (displayElement) displayElement.innerText = currentUsername;
+
     document.body.classList.remove('nickname-page');
 
-    document.getElementById('user-setup').style.display = 'none';
-    document.getElementById('game-area').style.display = 'block';
+    const loginScreen = document.getElementById('login-screen');
+    const gameArea = document.getElementById('game-area');
+    if (loginScreen) loginScreen.style.display = 'none';
+    if (gameArea) gameArea.style.display = 'block';
 
-    if (typeof resizeCanvas === 'function') {
-        setTimeout(resizeCanvas, 50);
-    }
+    if (typeof loadRpsRankings === 'function') loadRpsRankings();
+    if (typeof loadCircleRankings === 'function') loadCircleRankings();
 }
 
 function switchGame(gameType) {
@@ -171,15 +154,15 @@ function switchGame(gameType) {
 }
 
 window.addEventListener('load', () => {
-    const mainTitle = document.getElementById('main-title');
-    mainTitle?.addEventListener('click', function() {
+    // 💡 [배너 리매핑] 과거 글자 h1 대신 이미지 배너를 클릭했을 때 로그아웃 처리 실행
+    const gameBanner = document.getElementById('game-banner');
+    gameBanner?.addEventListener('click', function() {
         const gameArea = document.getElementById('game-area');
         if (gameArea) gameArea.style.display = 'none';
 
-        const userSetup = document.getElementById('user-setup');
-        if (userSetup) userSetup.style.display = 'block';
+        const loginScreen = document.getElementById('login-screen');
+        if (loginScreen) loginScreen.style.display = 'flex';
 
-        // 💡 [배경 분리] 로고 클릭으로 로그인 화면 복귀 시 배경 이미지 다시 켜기
         document.body.classList.add('nickname-page');
 
         currentUsername = null;
@@ -187,8 +170,11 @@ window.addEventListener('load', () => {
         const nicknameInput = document.getElementById('username-input');
         if (nicknameInput) {
             nicknameInput.value = '';
-            initNicknameInput();
             nicknameInput.focus();
         }
     });
+
+    initNicknamePageStyles();
+    initNicknameInput();
+    loadGameConfig();
 });
