@@ -3,7 +3,7 @@
 ---
 
 ## 📌 프로젝트 개요
-Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예의 전당 기능 탑재 미니게임 플랫폼입니다. 보안 위변조 방지 및 악의적인 트래픽 도배를 차단하는 상용 서비스 수준의 보안 레이어가 적용되어 있으며, 독립적인 모듈 구조(Modular Architecture)로 설계되어 있습니다.
+Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예의 전당 기능 탑재 미니게임 플랫폼입니다. 보안 위변조 방지 및 악의적인 트래픽 도배를 차단하는 상용 서비스 수준의 보안 레이어가 적용되어 있으며, 독립적인 모듈 구조(Modular Architecture)로 설계되어 있습니다. 현재 **가위바위보**, **원 그리기**, **앞뒤 맞추기 서바이벌** 3개의 게임이 탭 방식으로 운영됩니다.
 
 특히 화면 전환에 따라 인터페이스와 스타일을 완전히 다르게 제어하는 **'닉네임 설정 화면'과 '게임 영역 화면'의 물리적·시각적 디자인 격리 설계**가 핵심적으로 적용되어 있습니다.
 
@@ -45,6 +45,16 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 - **실시간 순위 표시**: 원 그리기 완료 후 점수 옆에 현재 전체 순위가 함께 표시됩니다. 두 번째 원을 그리기 시작할 때는 이전 점수와 순위가 유지되다가 새 결과로 업데이트됩니다.
 - **히든 보상**: Supabase `game_config` 테이블의 `circle_threshold` 값 이상 획득 시 깜짝 축하 페이지(`suddenwinner.html`)로 이동합니다.
 
+### 3. 🔤 앞뒤 맞추기 서바이벌 (Letter Game)
+- **게임 방식**: 화면 중앙에 표시된 알파벳 또는 한글 자음을 보고, 그 앞 글자와 뒷 글자를 5초 이내에 순서대로 선택합니다. 틀리거나 시간이 초과되면 게임이 종료됩니다.
+- **문자 세트**: 50% 확률로 알파벳(a~z) 또는 한글 자음(ㄱ~ㅎ) 중 하나가 무작위 출제됩니다. 양쪽 끝 글자(a, z, ㄱ, ㅎ)는 제외하여 앞뒤가 항상 존재하도록 보장합니다.
+- **2단계 입력 구조**: 1단계에서 앞 글자를 맞추면 해당 버튼이 주황색으로 하이라이트되고 빈 칸에 채워지며, 2단계에서 뒷 글자를 선택합니다. 단계별로 즉각적인 시각 피드백을 제공합니다.
+- **보기 구성**: 정답 2개(앞글자, 뒷글자) + 오답 4개로 총 6개 버튼이 3x2 그리드로 배치됩니다.
+- **게임 오버 피드백**: 종료 시 빈 칸에 정답이 자동으로 채워지고, 보기 버튼에서 앞글자(파란색)와 뒷글자(초록색)의 정답 위치가 색상으로 구분 표시됩니다.
+- **타이머**: 5초 카운트다운이 실시간으로 표시되며, 1.5초 이하로 남으면 빨간색 점멸 애니메이션으로 긴박감을 연출합니다.
+- **히든 보상**: Supabase `game_config` 테이블의 `abc_threshold` 값 이상 연승 달성 시 깜짝 축하 페이지(`suddenwinner.html`)로 이동합니다.
+- **실시간 순위 표시**: 게임 오버 시 최종 연승 기록과 전체 순위가 함께 표시됩니다.
+
 ---
 
 ## 🛡️ 적용된 보안 및 플랫폼 백엔드 아키텍처
@@ -59,10 +69,14 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 ### 3. 초효율적 데이터 청소 시스템 (Daily Cron Job & Top 10 보존)
 - **원리**: 매일 하루에 한 번, 상위 10개(Top 10) 기록만 남기고 나머지는 자동으로 삭제하는 SQL 크론탭(pg_cron) 시스템이 백엔드 내부에서 가동 중입니다.
 - **보안 무결성**: Supabase 백엔드 내부의 RLS(Row Level Security) 시스템을 철저히 활성화하여 anon_key가 외부에 노출되더라도 데이터 임의 삭제나 변조가 원천 차단됩니다.
+- **등록된 크론 목록** (`SELECT * FROM cron.job`으로 확인 가능):
+  - `cleanup-rankings-daily` → `rankings` 테이블 (가위바위보)
+  - `cleanup-circle-rankings-daily` → `circle_rankings` 테이블 (원 그리기)
+  - `cleanup-abc-rank-daily` → `abc_rank` 테이블 (앞뒤 맞추기)
 
 ### 4. 축하 페이지 비정상 접근 차단 (SessionStorage 티켓 검증)
 - **원리**: 게임 조건 달성 시 `sessionStorage`에 인증 티켓과 점수를 저장한 뒤 `suddenwinner.html`로 이동합니다. 축하 페이지 진입 시 티켓을 검증하고 즉시 폐기하여 URL 직접 접근, 새로고침, 주소 공유를 통한 재접속을 원천 차단합니다.
-- **게임별 분기**: URL 파라미터 `?game=rps` 여부로 가위바위보 / 원 그리기 케이스를 분리 처리합니다.
+- **게임별 분기**: URL 파라미터 `?game=rps`, `?game=abc` 여부로 가위바위보 / 앞뒤 맞추기 / 원 그리기 케이스를 분리 처리합니다.
 
 ### 5. Supabase 기반 게임 조건 중앙 관리 (game_config 테이블)
 - **원리**: 축하 페이지 진입 조건(연승 수, 점수 기준)을 코드에 하드코딩하지 않고 Supabase `game_config` 테이블에서 관리합니다. 대시보드에서 값만 변경하면 코드 배포 없이 즉시 반영됩니다.
@@ -72,8 +86,9 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 |-----|-------|------|
 | `rps_threshold` | `9` | 가위바위보 축하 페이지 진입 기준 연승 수 |
 | `circle_threshold` | `95` | 원 그리기 축하 페이지 진입 기준 점수 |
+| `abc_threshold` | `9` | 앞뒤 맞추기 축하 페이지 진입 기준 연승 수 |
 
-- **동적 UI 연동**: 값이 fetch된 후 `index.html`의 안내 문구(`rps-threshold-hint`, `circle-threshold-hint` span)도 자동으로 업데이트됩니다. 코드와 화면 문구가 항상 동기화됩니다.
+- **동적 UI 연동**: 값이 fetch된 후 `index.html`의 안내 문구(`rps-threshold-hint`, `circle-threshold-hint`, `abc-threshold-hint` span)도 자동으로 업데이트됩니다. 코드와 화면 문구가 항상 동기화됩니다.
 
 ---
 
@@ -84,21 +99,22 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 | `index.html` | 웹 게임 UI 레이아웃, Canvas 구성, 헤더 통합 및 스크립트 로드 총괄 |
 | `style.css` | 플랫폼 공통 레이아웃 및 탭 메뉴, 버튼, 랭킹 리스트 디자인 스타일시트 (화면 분리 핵심 통제) |
 | `security.js` | 암호화 해시 생성(SHA-256) 및 게임별 쿨타임 타임락 통제 담당 |
-| `main.js` | 플랫폼 공통 관리자 모듈. Supabase 초기화, game_config fetch, 닉네임 세션 및 독립형 배너 내비게이션 복귀 로직 통제 |
+| `main.js` | 플랫폼 공통 관리자 모듈. Supabase 초기화, game_config fetch, 닉네임 세션 및 독립형 배너 내비게이션 복귀 로직 통제. 3탭 전환(`switchGame`) 및 `ABC_THRESHOLD` 전역변수 관리 포함 |
 | `game_rps.js` | 가위바위보 독립 모듈 (컴퓨터 패 산출, 연승 연산, 랭킹 데이터 입출력, 축하 페이지 분기) |
 | `game_circle.js` | 원 그리기 독립 모듈 (파란 실선 드로잉, 빨간 점선 가이드 매칭 시각화, 판정 엔진, 드로잉 리플레이 애니메이션, 축하 페이지 분기) |
-| `suddenwinner.html` | 가위바위보/원 그리기 공용 축하 페이지. SessionStorage 티켓 검증 및 게임별 문구 분기 처리 |
+| `game_letter.js` | 앞뒤 맞추기 서바이벌 독립 모듈 (알파벳/한글 자음 무작위 출제, 5초 타이머, 2단계 입력, `abc_rank` 테이블 랭킹 입출력, 축하 페이지 분기) |
+| `suddenwinner.html` | 가위바위보/원 그리기/앞뒤 맞추기 공용 축하 페이지. SessionStorage 티켓 검증 및 게임별(`?game=rps`, `?game=abc`, 파라미터 없음) 문구 분기 처리 |
 | `ment.json` | 원 그리기 최종 점수대별(0% ~ 100%) 맞춤형 평가 피드백 멘트 데이터셋 (20단계) |
 | `config.js` | Supabase URL 및 anon_key 보관 |
 | `project.md` | [현재 파일] 프로젝트 개발 명세 및 전체 히스토리 관리 가이드 문서 |
-| `images` | **디렉토리** | 로그인 배경(`nickbgimage.png`), 상단 밀착형 독립 배너(`logoimage.png`) 자원 보관 주소 |
+| `images` | **디렉토리** — 로그인 배경(`nickbgimage.png`), 상단 밀착형 독립 배너(`logoimage.png`) 자원 보관 주소 |
 
 ---
 
 ## 🚨 파일 간 핵심 연동 및 트러블슈팅 히스토리
 
 ### 스크립트 로드 순서 의존성
-반드시 `config.js` → `main.js` → `security.js` → 각 게임 모듈 순서로 로드되어야 Supabase 클라이언트 및 암호화 해시 엔진을 에러 없이 상속받을 수 있습니다.
+반드시 `config.js` → `main.js` → `security.js` → 각 게임 모듈(`game_rps.js` → `game_circle.js` → `game_letter.js`) 순서로 로드되어야 Supabase 클라이언트 및 암호화 해시 엔진을 에러 없이 상속받을 수 있습니다.
 
 ### 독립형 배너 이미지 내비게이션 연동 (`images/logoimage.png`)
 메인 화면의 독립 배너 이미지를 누르면 언제든지 로그인 세션이 리셋되며 최초 닉네임 설정 화면으로 완벽하게 복귀하는 제어 트리거를 심었습니다. `main.js` 내부에서 `document.getElementById('game-banner')` 요소를 안전하게 확보하여 `click` 이벤트를 매핑했으며, 복귀 시 body에 `nickname-page` 클래스를 즉각 재주입하여 배경화면 스타일을 안전하게 복구합니다.
@@ -125,7 +141,13 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 - `.gitignore`는 이미 추적 중인 파일에는 적용 안 됨 → `git rm --cached`로 먼저 제거 필요
 
 ### game_config fetch 타이밍
-`main.js`의 `loadGameConfig()`는 `window.addEventListener('load', ...)` 안에서 **가장 먼저** `await`로 호출되어, 게임 모듈이 초기화되기 전에 `RPS_THRESHOLD`, `CIRCLE_THRESHOLD` 전역변수가 반드시 채워지도록 보장합니다. fetch 실패 시에는 각각 `9`, `95`를 fallback 기본값으로 사용합니다.
+`main.js`의 `loadGameConfig()`는 `window.addEventListener('load', ...)` 안에서 **가장 먼저** `await`로 호출되어, 게임 모듈이 초기화되기 전에 `RPS_THRESHOLD`, `CIRCLE_THRESHOLD`, `ABC_THRESHOLD` 전역변수가 반드시 채워지도록 보장합니다. fetch 실패 시에는 각각 `9`, `95`, `9`를 fallback 기본값으로 사용합니다.
+
+### game_config 테이블 컬럼명 주의
+`game_config` 테이블의 실제 컬럼명은 `key`, `value`입니다. `main.js`에서 `.select('key, value')` 및 `item.key`, `item.value`로 참조해야 합니다. `config_key`, `config_value` 등 다른 이름으로 조회하면 400 에러가 발생합니다.
+
+### 각 게임 모듈의 랭킹 초기 로드 함수 필수 선언
+`main.js`의 `saveUsername()`에서 로그인 성공 시 `loadRpsRankings()`, `loadCircleRankings()`, `loadLetterRankings()`를 호출합니다. 각 게임 모듈 파일 내에 이 함수들이 반드시 선언되어 있어야 하며, `game_circle.js`는 추가로 `window.addEventListener('load', () => { initCircleCanvas(); })`도 포함해야 캔버스가 정상 초기화됩니다.
 
 ---
 
