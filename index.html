@@ -28,6 +28,7 @@
             <button id="tab-rps"    class="tab-btn active" onclick="switchGame('rps')">✌️ 가위바위보</button>
             <button id="tab-circle" class="tab-btn"        onclick="switchGame('circle')">⭕ 원 그리기</button>
             <button id="tab-letter" class="tab-btn"        onclick="switchGame('letter')">🔤 앞뒤 맞추기</button>
+            <button id="tab-block"  class="tab-btn"        onclick="switchGame('block')">🧱 블록쌓기</button>
         </div>
 
         <!-- ===== 게임 1: 가위바위보 ===== -->
@@ -180,6 +181,38 @@
             </div>
         </div>
 
+        <!-- ===== 게임 4: 블록쌓기 ===== -->
+        <div id="content-block" class="game-content content" style="display: none;">
+
+            <div class="block-score-board">
+                <p>쌓은 층수: <span id="block-score">0</span></p>
+                <div style="font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; font-weight: normal; line-height: 1.5;">
+                    💡 <strong><span id="block-threshold-hint">9</span>층</strong> 이상 쌓으면 깜짝 축하 페이지를 만나세요!
+                </div>
+            </div>
+
+            <div class="block-game-wrap">
+                <canvas id="blockCanvas" width="400" height="500"></canvas>
+                <div id="block-overlay">
+                    <h1 id="block-title">MASS STACKER</h1>
+                    <p id="block-score-display" class="hidden"></p>
+                    <button id="block-start-btn">START GAME</button>
+                </div>
+            </div>
+
+            <div style="font-size: 0.9rem; color: #888; margin-top: 10px; text-align: center;">
+                📱 화면 터치 또는 ⌨️ 스페이스바로 블록을 떨어뜨리세요!
+            </div>
+
+            <hr>
+            <div class="ranking-board">
+                <h3>🌍 블록쌓기 전 세계 Top 10 기록</h3>
+                <ul id="blockRankingList" class="ranking-list">
+                    <li>데이터를 불러오는 중...</li>
+                </ul>
+            </div>
+        </div>
+
     </div>
 
 <script src="config.js"></script>
@@ -188,5 +221,6 @@
 <script src="game_rps.js"></script>
 <script src="game_circle.js"></script>
 <script src="game_letter.js"></script>
+<script src="game_block.js"></script>
 </body>
 </html>

@@ -8,6 +8,7 @@ let evaluationMents = [];
 let RPS_THRESHOLD    = 9;
 let CIRCLE_THRESHOLD = 95;
 let ABC_THRESHOLD    = 9;
+let BLOCK_THRESHOLD  = 9;
 
 /**
  * config.js에서 이미 선언된 supabaseUrl과 supabaseKey를
@@ -54,9 +55,11 @@ async function loadGameConfig() {
                     CIRCLE_THRESHOLD = parseInt(item.value, 10);
                 } else if (item.key === 'abc_threshold') {
                     ABC_THRESHOLD = parseInt(item.value, 10);
+                } else if (item.key === 'block_threshold') {
+                    BLOCK_THRESHOLD = parseInt(item.value, 10);
                 }
             });
-            console.log(`[Config 로드 완료] 가위바위보: ${RPS_THRESHOLD}, 원 그리기: ${CIRCLE_THRESHOLD}, 앞뒤 맞추기: ${ABC_THRESHOLD}`);
+            console.log(`[Config 로드 완료] 가위바위보: ${RPS_THRESHOLD}, 원 그리기: ${CIRCLE_THRESHOLD}, 앞뒤 맞추기: ${ABC_THRESHOLD}, 블록쌓기: ${BLOCK_THRESHOLD}`);
         }
     } catch (err) {
         console.warn("설정값 원격 로드 실패, 로컬 기본값으로 세팅을 수호합니다:", err);
@@ -69,9 +72,11 @@ function updateThresholdUI() {
     const rpsHint    = document.getElementById('rps-threshold-hint');
     const circleHint = document.getElementById('circle-threshold-hint');
     const abcHint    = document.getElementById('abc-threshold-hint');
+    const blockHint  = document.getElementById('block-threshold-hint');
     if (rpsHint)    rpsHint.innerText    = RPS_THRESHOLD;
     if (circleHint) circleHint.innerText = CIRCLE_THRESHOLD;
     if (abcHint)    abcHint.innerText    = ABC_THRESHOLD;
+    if (blockHint)  blockHint.innerText  = BLOCK_THRESHOLD;
 }
 
 function initNicknamePageStyles() {
@@ -137,22 +142,25 @@ async function saveUsername() {
     if (typeof loadRpsRankings    === 'function') loadRpsRankings();
     if (typeof loadCircleRankings === 'function') loadCircleRankings();
     if (typeof loadLetterRankings === 'function') loadLetterRankings();
+    if (typeof loadBlockRankings  === 'function') loadBlockRankings();
 }
 
 // ==========================================
-// 2. 탭 전환 (3탭으로 확장)
+// 2. 탭 전환 (4탭으로 확장)
 // ==========================================
 function switchGame(gameType) {
     const rpsContent    = document.getElementById('content-rps');
     const circleContent = document.getElementById('content-circle');
     const letterContent = document.getElementById('content-letter');
+    const blockContent  = document.getElementById('content-block');
     const rpsTab        = document.getElementById('tab-rps');
     const circleTab     = document.getElementById('tab-circle');
     const letterTab     = document.getElementById('tab-letter');
+    const blockTab      = document.getElementById('tab-block');
 
     // 모두 숨기고 탭 비활성화
-    [rpsContent, circleContent, letterContent].forEach(el => { if (el) el.style.display = 'none'; });
-    [rpsTab, circleTab, letterTab].forEach(el => { if (el) el.classList.remove('active'); });
+    [rpsContent, circleContent, letterContent, blockContent].forEach(el => { if (el) el.style.display = 'none'; });
+    [rpsTab, circleTab, letterTab, blockTab].forEach(el => { if (el) el.classList.remove('active'); });
 
     if (gameType === 'rps') {
         if (rpsContent) rpsContent.style.display = 'flex';
@@ -166,6 +174,10 @@ function switchGame(gameType) {
     } else if (gameType === 'letter') {
         if (letterContent) letterContent.style.display = 'flex';
         if (letterTab)     letterTab.classList.add('active');
+
+    } else if (gameType === 'block') {
+        if (blockContent) blockContent.style.display = 'flex';
+        if (blockTab)     blockTab.classList.add('active');
     }
 }
 

@@ -113,9 +113,34 @@
     const game = urlParams.get('game'); // 'rps', 'abc' 또는 없으면 원 그리기
 
     // ============================
+    // 블록쌓기 연승 달성 케이스
+    // ============================
+    if (game === 'block') {
+        const celebrationToken = sessionStorage.getItem('block_celebration_verified');
+        const verifiedScore = sessionStorage.getItem('block_celebration_score');
+
+        if (celebrationToken !== 'true' || !verifiedScore || urlScore !== verifiedScore) {
+            alert("🚫 잘못된 접근입니다. 정상적인 경로로 이용해 주세요!");
+            window.location.href = 'index.html';
+        } else {
+            document.getElementById('main-title').innerText = '👑 SKY ARCHITECT 👑';
+            document.getElementById('sub-title').innerText = '블록쌓기 명예의 전당 달성!';
+            document.getElementById('display-score').innerText = verifiedScore + '층';
+            document.getElementById('main-desc').innerHTML =
+                `중력을 거스르며 쌓아올린 ${verifiedScore}층의 탑.<br>` +
+                `흔들리지 않는 균형 감각과 찰나의 타이밍으로<br>` +
+                `블록쌓기 명예의 전당에 이름을 새겼습니다!`;
+            document.getElementById('retry-btn').innerText = '다시 도전하기';
+
+            // 티켓 즉시 폐기
+            sessionStorage.removeItem('block_celebration_verified');
+            sessionStorage.removeItem('block_celebration_score');
+        }
+
+    // ============================
     // 가위바위보 1등 달성 케이스
     // ============================
-    if (game === 'rps') {
+    } else if (game === 'rps') {
         const celebrationToken = sessionStorage.getItem('rps_celebration_verified');
         const verifiedScore = sessionStorage.getItem('rps_celebration_score');
 
