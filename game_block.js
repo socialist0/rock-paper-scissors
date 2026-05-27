@@ -139,7 +139,8 @@ function blockInitGame() {
 
     blockSpawnNextBlock();
     blockGameActive = true;
-    if (blockOverlay) blockOverlay.classList.add('hidden');
+    if (blockOverlay) blockOverlay.style.display = 'none';
+    if (blockFinalScoreEl) blockFinalScoreEl.style.display = 'none';
 }
 
 function blockSpawnNextBlock() {
@@ -282,10 +283,10 @@ async function blockGameOver() {
     if (blockTitleEl)     blockTitleEl.innerText = "WEIGHT CRASHED!";
     if (blockFinalScoreEl) {
         blockFinalScoreEl.innerText = `쌓은 층수: ${blockScore}`;
-        blockFinalScoreEl.classList.remove('hidden');
+        blockFinalScoreEl.style.display = 'block';
     }
     if (blockStartBtn)    blockStartBtn.innerText = "다시 도전";
-    if (blockOverlay)     blockOverlay.classList.remove('hidden');
+    if (blockOverlay) blockOverlay.style.display = 'flex';
 
     // 랭킹 저장 및 내 순위 표시
     await blockSaveAndShowRank();
@@ -314,10 +315,12 @@ async function blockSaveAndShowRank() {
     }
 
     try {
-        // 해시 토큰 생성 (security.js의 generateHash 활용)
+        // 해시 토큰 생성 (security.js 패턴 동일)
         let token = null;
-        if (typeof generateHash === 'function') {
-            token = await generateHash(currentUsername, blockScore);
+        if (typeof generateVerificationToken === 'function') {
+            token = generateVerificationToken(currentUsername, blockScore);
+        } else if (typeof generateVerificationHash === 'function') {
+            token = generateVerificationHash(currentUsername, blockScore);
         }
 
         const { error } = await window._supabase
