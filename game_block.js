@@ -352,7 +352,7 @@ async function loadBlockRankings(myScore = null) {
     try {
         const { data, error } = await window._supabase
             .from('block_rank')
-            .select('nickname, score')
+            .select('nickname, score, created_at')
             .order('score', { ascending: false })
             .limit(10);
 
