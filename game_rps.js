@@ -115,7 +115,7 @@ async function fetchGlobalRankings({ showMyRank = false, myScore = null } = {}) 
         
         // 화면에 바인딩 및 하이라이트
         uniqueRankings.forEach((player, index) => {
-            const dateString = new Date(player.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
+            const dateString = formatBlockDate(player.created_at);
             const li = document.createElement('li');
             const isMyNewScore = lastRpsUploadedId && (String(player.id) === lastRpsUploadedId);
             
@@ -171,4 +171,16 @@ async function fetchGlobalRankings({ showMyRank = false, myScore = null } = {}) 
 }
 function loadRpsRankings() {
     fetchGlobalRankings();
+}
+// ── 공통 날짜 포맷: yy/mm/dd hh:mm:ss (KST) ──
+function formatBlockDate(isoString) {
+    const d = new Date(isoString);
+    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+    const yy  = String(kst.getUTCFullYear()).slice(2);
+    const mo  = String(kst.getUTCMonth() + 1).padStart(2, '0');
+    const dd  = String(kst.getUTCDate()).padStart(2, '0');
+    const hh  = String(kst.getUTCHours()).padStart(2, '0');
+    const mm  = String(kst.getUTCMinutes()).padStart(2, '0');
+    const ss  = String(kst.getUTCSeconds()).padStart(2, '0');
+    return `${yy}/${mo}/${dd} ${hh}:${mm}:${ss}`;
 }

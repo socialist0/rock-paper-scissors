@@ -5,8 +5,26 @@ let points = [];
 
 let lastUploadedId = null;
 
+// ── ment.json 로컬 캐시 ──
+let circleMents = [];
+
+async function loadCircleMents() {
+    if (circleMents.length > 0) return; // 이미 로드됨
+    try {
+        const res = await fetch('ment.json');
+        if (!res.ok) throw new Error('ment.json fetch 실패');
+        circleMents = await res.json();
+    } catch (err) {
+        console.warn('ment.json 로드 실패, 전역 evaluationMents 사용 시도:', err);
+        if (Array.isArray(evaluationMents) && evaluationMents.length > 0) {
+            circleMents = evaluationMents;
+        }
+    }
+}
+
 function initCircleCanvas() {
     if (!canvas) return;
+    loadCircleMents(); // 미리 fetch
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e.touches[0]); });
     canvas.addEventListener('mousemove', draw);
@@ -64,6 +82,8 @@ function stopDrawing() {
 }
 
 async function calculateCircleScore() {
+    await loadCircleMents(); // ment.json 보장
+
     const scoreDisplay = document.getElementById('score-display');
     const messageDisplay = document.getElementById('message');
 
@@ -101,7 +121,7 @@ async function calculateCircleScore() {
     finalScore = Math.round(finalScore * 10) / 10;
 
     scoreDisplay.innerText = `${finalScore}%`;
-    const match = evaluationMents.find(m => finalScore <= m.max && finalScore >= m.min);
+    const match = circleMents.find(m => finalScore <= m.max && finalScore >= m.min);
     messageDisplay.innerText = match ? match.text : "훌륭한 원입니다!";
 
     // ✨ 업로드 후 순위를 score-display 옆에 표시
@@ -258,7 +278,7 @@ async function fetchCircleRankings() {
         }
         
         data.forEach((player, index) => {
-            const dateString = new Date(player.created_at).toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false });
+            const dateString = formatBlockDate(player.created_at);
             const li = document.createElement('li');
             
             if (lastUploadedId && player.id === lastUploadedId) {
@@ -285,3 +305,15 @@ function loadCircleRankings() {
 window.addEventListener('load', () => {
     initCircleCanvas();
 });
+// ── 공통 날짜 포맷: yy/mm/dd hh:mm:ss (KST) ──
+function formatBlockDate(isoString) {
+    const d = new Date(isoString);
+    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+    const yy  = String(kst.getUTCFullYear()).slice(2);
+    const mo  = String(kst.getUTCMonth() + 1).padStart(2, '0');
+    const dd  = String(kst.getUTCDate()).padStart(2, '0');
+    const hh  = String(kst.getUTCHours()).padStart(2, '0');
+    const mm  = String(kst.getUTCMinutes()).padStart(2, '0');
+    const ss  = String(kst.getUTCSeconds()).padStart(2, '0');
+    return `${yy}/${mo}/${dd} ${hh}:${mm}:${ss}`;
+}

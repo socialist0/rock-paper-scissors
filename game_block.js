@@ -367,8 +367,9 @@ async function loadBlockRankings(myScore = null) {
 
         data.forEach((row, idx) => {
             const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
+            const dateString = formatBlockDate(row.created_at);
             const li = document.createElement('li');
-            li.innerHTML = `${medal} <span>${row.nickname}</span> — ${row.score}층`;
+            li.innerHTML = `${medal} <span>${row.nickname}</span> — ${row.score}층 <span style="font-size:0.85rem;color:#888;float:right;">(${dateString})</span>`;
             list.appendChild(li);
         });
 
@@ -514,3 +515,15 @@ function initBlockGame() {
 window.addEventListener('load', () => {
     initBlockGame();
 });
+// ── 공통 날짜 포맷: yy/mm/dd hh:mm:ss (KST) ──
+function formatBlockDate(isoString) {
+    const d = new Date(isoString);
+    const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
+    const yy  = String(kst.getUTCFullYear()).slice(2);
+    const mo  = String(kst.getUTCMonth() + 1).padStart(2, '0');
+    const dd  = String(kst.getUTCDate()).padStart(2, '0');
+    const hh  = String(kst.getUTCHours()).padStart(2, '0');
+    const mm  = String(kst.getUTCMinutes()).padStart(2, '0');
+    const ss  = String(kst.getUTCSeconds()).padStart(2, '0');
+    return `${yy}/${mo}/${dd} ${hh}:${mm}:${ss}`;
+}
