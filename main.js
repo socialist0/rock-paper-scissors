@@ -143,6 +143,13 @@ async function saveUsername() {
     if (typeof loadCircleRankings === 'function') loadCircleRankings();
     if (typeof loadLetterRankings === 'function') loadLetterRankings();
     if (typeof loadBlockRankings  === 'function') loadBlockRankings();
+
+    // ✨ suddenwinner.html에서 돌아올 때 해당 게임 탭으로 자동 전환
+    const params = new URLSearchParams(window.location.search);
+    const returnGame = params.get('game');
+    if (returnGame) {
+        switchGame(returnGame);
+    }
 }
 
 // ==========================================

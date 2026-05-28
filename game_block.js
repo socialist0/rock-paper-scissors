@@ -18,6 +18,7 @@ let blockStack        = [];
 let blockCurrentBlock = {};
 let blockCameraY      = 0;
 let blockTargetCameraY = 0;
+let lastBlockUploadedId = null; // 하이라이트용
 
 const blockColors = [
     '#ff595e','#ffca3a','#8ac926','#1982c4',
@@ -325,15 +326,19 @@ async function blockSaveAndShowRank() {
             token = generateVerificationHash(currentUsername, blockScore);
         }
 
-        const { error } = await window._supabase
+        const { data: insertData, error } = await window._supabase
             .from('block_rank')
             .insert([{
                 nickname:           currentUsername,
                 score:              blockScore,
                 verification_token: token
-            }]);
+            }])
+            .select();
 
         if (error) throw error;
+        if (insertData && insertData.length > 0) {
+            lastBlockUploadedId = String(insertData[0].id);
+        }
         markBlockSaveTime();
     } catch (err) {
         console.warn('[block_rank 저장 실패]', err);
@@ -375,7 +380,14 @@ async function loadBlockRankings(myScore = null) {
             const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
             const dateString = formatBlockDate(row.created_at);
             const li = document.createElement('li');
-            li.innerHTML = `${medal} <span>${row.nickname}</span> — ${row.score}층 <span style="font-size:0.85rem;color:#888;float:right;">(${dateString})</span>`;
+            const isMyNew = lastBlockUploadedId && String(row.id) === lastBlockUploadedId;
+
+            if (isMyNew) {
+                li.style.cssText = 'background-color:#e6f4ea;color:#137333;font-weight:bold;border-radius:5px;padding:6px 10px;margin:4px 0;transition:all 0.5s ease;';
+                li.innerHTML = `${medal} <span>${row.nickname}</span> — ${row.score}층 <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
+            } else {
+                li.innerHTML = `${medal} <span>${row.nickname}</span> — ${row.score}층 <span style="font-size:0.85rem;color:#888;float:right;">(${dateString})</span>`;
+            }
             list.appendChild(li);
         });
 

@@ -131,6 +131,7 @@
                 `흔들리지 않는 균형 감각과 찰나의 타이밍으로<br>` +
                 `블록쌓기 명예의 전당에 이름을 새겼습니다!`;
             document.getElementById('retry-btn').innerText = '다시 도전하기';
+            document.getElementById('retry-btn').href = 'index.html?game=block';
 
             // 티켓 즉시 폐기
             sessionStorage.removeItem('block_celebration_verified');
@@ -156,6 +157,7 @@
                 `철벽 같은 판단력과 흔들리지 않는 멘탈로<br>` +
                 `가위바위보 명예의 전당 정상을 차지했습니다!`;
             document.getElementById('retry-btn').innerText = '다시 도전하기';
+            document.getElementById('retry-btn').href = 'index.html?game=rps';
 
             // 티켓 즉시 폐기
             sessionStorage.removeItem('rps_celebration_verified');
@@ -181,6 +183,7 @@
                 `번개 같은 반응 속도와 완벽한 순서 감각으로<br>` +
                 `앞뒤 맞추기 명예의 전당에 이름을 올렸습니다!`;
             document.getElementById('retry-btn').innerText = '다시 도전하기';
+            document.getElementById('retry-btn').href = 'index.html?game=letter';
 
             // 티켓 즉시 폐기
             sessionStorage.removeItem('abc_celebration_verified');
@@ -199,6 +202,7 @@
             window.location.href = 'index.html';
         } else {
             document.getElementById('display-score').innerText = verifiedScore + '%';
+            document.getElementById('retry-btn').href = 'index.html?game=circle';
 
             // 티켓 즉시 폐기
             sessionStorage.removeItem('circle_celebration_verified');
