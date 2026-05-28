@@ -287,7 +287,6 @@ async function blockGameOver() {
 
     // 점수는 즉시 표시 (저장 완료 기다리지 않음)
     if (blockFinalScoreEl) {
-        blockFinalScoreEl.innerHTML = `쌓은 층수: <strong>${blockScore}</strong>층`;
         blockFinalScoreEl.style.display = 'block';
     }
 
@@ -393,20 +392,17 @@ async function loadBlockRankings(myScore = null) {
 
         // 내 순위 계산 (같은 data로 바로 처리, 추가 쿼리 없음)
         if (myScore !== null && currentUsername) {
-            const myRank = data.findIndex(r => r.score <= myScore) + 1;
-            const scoreDisplay = document.getElementById('block-score-display');
-            if (scoreDisplay) {
-                // 기존 순위 span 제거 후 추가 (점수 텍스트는 유지)
-                const existing = document.getElementById('block-rank-badge');
-                if (existing) existing.remove();
-                const rankSpan = document.createElement('span');
-                rankSpan.id = 'block-rank-badge';
-                rankSpan.style.cssText = 'font-size:1rem; color:#007bff; margin-left:8px;';
-                rankSpan.innerText = `🏅 전체 ${myRank}위`;
-                scoreDisplay.appendChild(rankSpan);
-                scoreDisplay.style.display = 'block';
-            }
-        }
+    const myRank = data.findIndex(r => r.score <= myScore) + 1;
+    const scoreDisplay = document.getElementById('block-score-display');
+    if (scoreDisplay) {
+        // 기존 내용을 싹 지우고 '층수'와 '순위 뱃지'를 한 번에 템플릿 리터럴로 밀어 넣습니다.
+        scoreDisplay.innerHTML = `
+            쌓은 층수: <strong>${myScore}</strong>층 
+            <span id="block-rank-badge" style="font-size:1.5rem; color:#007bff; margin-left:8px;">🏅 전체 ${myRank}위</span>
+        `;
+        scoreDisplay.style.display = 'flex'; // project.md 스펙에 맞게 flex 레이아웃 보장
+    }
+}
     } catch (err) {
         console.warn('[block_rank 로드 실패]', err);
         list.innerHTML = '<li>랭킹을 불러오는 중 오류가 발생했습니다.</li>';
