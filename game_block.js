@@ -363,7 +363,7 @@ async function loadBlockRankings(myScore = null) {
         // ── 전체 1번만 조회 (Top10 표시 + 내 순위 계산 동시 처리) ──
         const { data, error } = await window._supabase
             .from('block_rank')
-            .select('nickname, score, created_at')
+            .select('id, nickname, score, created_at')
             .order('score', { ascending: false });
 
         if (error) throw error;
