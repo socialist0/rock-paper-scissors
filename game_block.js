@@ -353,11 +353,11 @@ async function loadBlockRankings(myScore = null) {
     }
 
     try {
+        // ── 전체 1번만 조회 (Top10 표시 + 내 순위 계산 동시 처리) ──
         const { data, error } = await window._supabase
             .from('block_rank')
             .select('nickname, score, created_at')
-            .order('score', { ascending: false })
-            .limit(10);
+            .order('score', { ascending: false });
 
         if (error) throw error;
 
@@ -368,7 +368,8 @@ async function loadBlockRankings(myScore = null) {
             return;
         }
 
-        data.forEach((row, idx) => {
+        // Top 10만 화면에 표시
+        data.slice(0, 10).forEach((row, idx) => {
             const medal = idx === 0 ? '🥇' : idx === 1 ? '🥈' : idx === 2 ? '🥉' : `${idx + 1}.`;
             const dateString = formatBlockDate(row.created_at);
             const li = document.createElement('li');
@@ -376,27 +377,14 @@ async function loadBlockRankings(myScore = null) {
             list.appendChild(li);
         });
 
-        // 내 순위 표시
+        // 내 순위 계산 (같은 data로 바로 처리, 추가 쿼리 없음)
         if (myScore !== null && currentUsername) {
-            const { data: allData, error: rankErr } = await window._supabase
-                .from('block_rank')
-                .select('score')
-                .order('score', { ascending: false });
-
-            if (!rankErr && allData) {
-                const myRank = allData.findIndex(r => r.score <= myScore) + 1;
-                const rankEl = document.getElementById('block-my-rank-badge');
-                if (rankEl) {
-                    rankEl.innerText = `🏅 전체 ${myRank}위`;
-                    rankEl.style.display = 'inline';
-                }
-
-                // finalScoreEl 옆에 순위 붙이기
-                const scoreDisplay = document.getElementById('block-score-display');
-                if (scoreDisplay) {
-                    scoreDisplay.innerHTML =
-                        `쌓은 층수: <strong>${myScore}</strong>층 &nbsp;<span id="block-my-rank-badge" style="font-size:1rem; color:#007bff;">🏅 전체 ${myRank}위</span>`;
-                }
+            const myRank = data.findIndex(r => r.score <= myScore) + 1;
+            const scoreDisplay = document.getElementById('block-score-display');
+            if (scoreDisplay) {
+                scoreDisplay.innerHTML =
+                    `쌓은 층수: <strong>${myScore}</strong>층 &nbsp;<span style="font-size:1rem; color:#007bff;">🏅 전체 ${myRank}위</span>`;
+                scoreDisplay.style.display = 'block';
             }
         }
     } catch (err) {
