@@ -306,11 +306,11 @@ async function blockSaveAndShowRank() {
         return;
     }
     if (!canSaveBlockScore()) {
-        loadBlockRankings();
+        loadBlockRankings(blockScore); // 타임락이어도 순위는 표시
         return;
     }
     if (!initSupabase()) {
-        loadBlockRankings();
+        loadBlockRankings(blockScore);
         return;
     }
 
