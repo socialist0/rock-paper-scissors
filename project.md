@@ -78,10 +78,12 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 - **원리**: 매일 하루에 한 번, 상위 10개(Top 10) 기록만 남기고 나머지는 자동으로 삭제하는 SQL 크론탭(pg_cron) 시스템이 백엔드 내부에서 가동 중입니다.
 - **보안 무결성**: Supabase 백엔드 내부의 RLS(Row Level Security) 시스템을 철저히 활성화하여 anon_key가 외부에 노출되더라도 데이터 임의 삭제나 변조가 원천 차단됩니다.
 - **등록된 크론 목록** (`SELECT * FROM cron.job`으로 확인 가능):
-  - `cleanup-rankings-daily` → `rankings` 테이블 (가위바위보)
-  - `cleanup-circle-rankings-daily` → `circle_rankings` 테이블 (원 그리기)
-  - `cleanup-abc-rank-daily` → `abc_rank` 테이블 (앞뒤 맞추기)
-  - `cleanup-block-rank-daily` → `block_rank` 테이블 (블록쌓기)
+  - `cleanup-rankings-daily` → `rankings` 테이블 (가위바위보) — `0 0 * * *`
+  - `daily_ranking_keep_top10` → `circle_rankings` 테이블 (원 그리기) — `0 0 * * *`
+  - `cleanup-abc-rank-daily` → `abc_rank` 테이블 (앞뒤 맞추기) — `0 0 * * *`
+  - `cleanup-block-rank-daily` → `block_rank` 테이블 (블록쌓기) — `0 0 * * *`
+
+> ⚠️ **크론 정비 이력**: 초기 `daily_ranking_keep_top10` 크론의 `ORDER BY created_at DESC` 오류 및 `rankings` 크론 누락, `daily-abc-rank-cleanup` 중복 크론을 정리하고 올바른 크론으로 재등록했습니다 (2025-05-28).
 
 ### 4. 축하 페이지 비정상 접근 차단 (SessionStorage 티켓 검증)
 - **원리**: 게임 조건 달성 시 `sessionStorage`에 인증 티켓과 점수를 저장한 뒤 `suddenwinner.html`로 이동합니다. 축하 페이지 진입 시 티켓을 검증하고 즉시 폐기하여 URL 직접 접근, 새로고침, 주소 공유를 통한 재접속을 원천 차단합니다.
@@ -171,6 +173,24 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 ### 랭킹 날짜 포맷 통일 (전 게임 적용)
 - **변경 전**: `new Date().toLocaleString('ko-KR', { timeZone: 'Asia/Seoul', hour12: false })` — 브라우저/OS 로케일에 따라 출력 형식이 달라지고 연도 4자리로 길게 표시됨.
 - **변경 후**: `formatBlockDate()` 함수로 UTC+9 수동 계산 후 `yy/mm/dd hh:mm:ss` 형식으로 통일 (예: `25/05/27 14:32:08`). 4개 게임 모듈(`game_rps.js`, `game_circle.js`, `game_letter.js`, `game_block.js`) 모두 동일 함수 각 파일 내 선언 적용.
+
+### block_rank verification_token null 버그 (해결 완료)
+- **원인**: `game_block.js`의 해시 생성 코드가 `generateHash()`를 호출하고 있었는데 해당 함수명이 `security.js`에 존재하지 않아 항상 `null`로 저장됐습니다.
+- **해결**: 다른 게임 모듈과 동일하게 `generateVerificationToken()` → `generateVerificationHash()` 체인 방식으로 교체했습니다.
+
+### 블록쌓기 재게임 시 순위 미표시 버그 (해결 완료)
+- **원인**: 타임락(60초) 안에 두 번째 게임을 하면 `canSaveBlockScore()`가 false를 반환하여 저장을 건너뛰면서 `loadBlockRankings()`에 `myScore`를 전달하지 않아 순위가 표시되지 않았습니다.
+- **해결**: 타임락이 걸려도 `loadBlockRankings(blockScore)`로 점수를 전달하여 저장 여부와 관계없이 항상 순위가 표시되도록 수정했습니다.
+
+### 블록쌓기 랭킹 Supabase 호출 최적화 (2회 → 1회)
+- **원인**: `loadBlockRankings()`에서 Top 10 조회 후 내 순위 계산을 위해 전체 데이터를 한 번 더 조회하는 구조로 딜레이가 발생했습니다.
+- **해결**: `limit(10)` 제거 후 전체 데이터를 1번만 조회하여 `slice(0, 10)`으로 Top 10 표시와 `findIndex`로 순위 계산을 동시에 처리합니다.
+
+### pg_cron 크론 정비 (2025-05-28)
+- **문제 1**: `daily_ranking_keep_top10` 크론의 `ORDER BY created_at DESC` 오류 — 동점자 처리 기준이 잘못되어 크론이 예상대로 동작하지 않았습니다. `ASC`로 수정 재등록했습니다.
+- **문제 2**: `rankings`(가위바위보) 테이블 크론이 누락되어 있었습니다. `cleanup-rankings-daily`로 신규 등록했습니다.
+- **문제 3**: `abc_rank` 크론이 `cleanup-abc-rank-daily`와 `daily-abc-rank-cleanup` 두 개 중복 등록되어 있었습니다. `daily-abc-rank-cleanup`을 제거했습니다.
+- **수동 정리**: 크론 오류로 쌓인 `circle_rankings` 15개, `rankings` 초과분을 수동 DELETE로 각각 10개로 정리했습니다.
 
 ---
 
