@@ -281,15 +281,17 @@ async function blockGameOver() {
     blockIsCollapsing = false;
 
     if (blockTitleEl)     blockTitleEl.innerText = "WEIGHT CRASHED!";
+    if (blockStartBtn)    blockStartBtn.innerText = "다시 도전";
+    if (blockOverlay)     blockOverlay.style.display = 'flex';
+
+    // 점수는 즉시 표시 (저장 완료 기다리지 않음)
     if (blockFinalScoreEl) {
-        blockFinalScoreEl.innerText = `쌓은 층수: ${blockScore}`;
+        blockFinalScoreEl.innerHTML = `쌓은 층수: <strong>${blockScore}</strong>층`;
         blockFinalScoreEl.style.display = 'block';
     }
-    if (blockStartBtn)    blockStartBtn.innerText = "다시 도전";
-    if (blockOverlay) blockOverlay.style.display = 'flex';
 
-    // 랭킹 저장 및 내 순위 표시
-    await blockSaveAndShowRank();
+    // 저장 + 랭킹 로드는 백그라운드로 (await 제거)
+    blockSaveAndShowRank();
 
     // 축하 페이지 분기
     const threshold = (typeof BLOCK_THRESHOLD !== 'undefined') ? BLOCK_THRESHOLD : 9;
@@ -382,8 +384,14 @@ async function loadBlockRankings(myScore = null) {
             const myRank = data.findIndex(r => r.score <= myScore) + 1;
             const scoreDisplay = document.getElementById('block-score-display');
             if (scoreDisplay) {
-                scoreDisplay.innerHTML =
-                    `쌓은 층수: <strong>${myScore}</strong>층 &nbsp;<span style="font-size:1rem; color:#007bff;">🏅 전체 ${myRank}위</span>`;
+                // 기존 순위 span 제거 후 추가 (점수 텍스트는 유지)
+                const existing = document.getElementById('block-rank-badge');
+                if (existing) existing.remove();
+                const rankSpan = document.createElement('span');
+                rankSpan.id = 'block-rank-badge';
+                rankSpan.style.cssText = 'font-size:1rem; color:#007bff; margin-left:8px;';
+                rankSpan.innerText = `🏅 전체 ${myRank}위`;
+                scoreDisplay.appendChild(rankSpan);
                 scoreDisplay.style.display = 'block';
             }
         }
