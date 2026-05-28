@@ -391,16 +391,27 @@ async function loadBlockRankings(myScore = null) {
         });
 
         // 내 순위 계산 (같은 data로 바로 처리, 추가 쿼리 없음)
-        if (myScore !== null && currentUsername) {
-    const myRank = data.findIndex(r => r.score <= myScore) + 1;
-    const scoreDisplay = document.getElementById('block-score-display');
-    if (scoreDisplay) {
-        // 기존 내용을 싹 지우고 '층수'와 '순위 뱃지'를 한 번에 템플릿 리터럴로 밀어 넣습니다.
-        scoreDisplay.innerHTML = `
-            쌓은 층수: <strong>${myScore}</strong>층 
-            <span id="block-rank-badge" style="font-size:1.5rem; color:#007bff; margin-left:8px;">🏅 전체 ${myRank}위</span>
-        `;
-        scoreDisplay.style.display = 'flex'; // project.md 스펙에 맞게 flex 레이아웃 보장
+     async function blockGameOver() {
+    blockIsCollapsing = false;
+
+    if (blockTitleEl)     blockTitleEl.innerText = "WEIGHT CRASHED!";
+    if (blockStartBtn)    blockStartBtn.innerText = "다시 도전";
+    if (blockOverlay)     blockOverlay.style.display = 'flex';
+
+    // 점수 표시 영역 영역 보장 (텍스트는 loadBlockRankings에서 한 번에 주입)
+    if (blockFinalScoreEl) {
+        blockFinalScoreEl.style.display = 'flex'; 
+    }
+
+    // 저장 + 랭킹 로드는 백그라운드로 실행
+    blockSaveAndShowRank();
+
+    // 축하 페이지 분기
+    const threshold = (typeof BLOCK_THRESHOLD !== 'undefined') ? BLOCK_THRESHOLD : 9;
+    if (blockScore >= threshold && currentUsername) {
+        sessionStorage.setItem('block_celebration_verified', 'true');
+        sessionStorage.setItem('block_celebration_score', String(blockScore));
+        window.location.href = `suddenwinner.html?game=block&score=${blockScore}`;
     }
 }
     } catch (err) {
