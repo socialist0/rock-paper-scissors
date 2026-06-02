@@ -79,11 +79,13 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 - **보안 무결성**: Supabase 백엔드 내부의 RLS(Row Level Security) 시스템을 철저히 활성화하여 anon_key가 외부에 노출되더라도 데이터 임의 삭제나 변조가 원천 차단됩니다.
 - **등록된 크론 목록** (`SELECT * FROM cron.job`으로 확인 가능):
   - `cleanup-rankings-daily` → `rankings` 테이블 (가위바위보) — `0 0 * * *`
-  - `daily_ranking_keep_top10` → `circle_rankings` 테이블 (원 그리기) — `0 0 * * *`
+  - `cleanup-circle-rankings-daily` → `circle_rankings` 테이블 (원 그리기) — `0 0 * * *`
   - `cleanup-abc-rank-daily` → `abc_rank` 테이블 (앞뒤 맞추기) — `0 0 * * *`
   - `cleanup-block-rank-daily` → `block_rank` 테이블 (블록쌓기) — `0 0 * * *`
 
-> ⚠️ **크론 정비 이력**: 초기 `daily_ranking_keep_top10` 크론의 `ORDER BY created_at DESC` 오류 및 `rankings` 크론 누락, `daily-abc-rank-cleanup` 중복 크론을 정리하고 올바른 크론으로 재등록했습니다 (2025-05-28).
+> ⚠️ **크론 정비 이력 (2026-05-28)**: 초기 `daily_ranking_keep_top10` 크론의 `ORDER BY created_at DESC` 오류 및 `rankings` 크론 누락, `daily-abc-rank-cleanup` 중복 크론을 정리하고 올바른 크론으로 재등록했습니다.
+
+> ⚠️ **크론 정비 이력 (2026-05-31)**: `clean_rankings_keep_top10` 크론이 여러 DELETE문을 하나의 `$$...$$` 블록에 묶어 실행하다 `syntax error at or near "DELETE"` 오류로 계속 실패하고 있었음을 `cron.job_run_details`로 확인. 해당 크론 삭제 후 테이블별로 크론 1개씩 총 4개로 분리 재등록. 쌓여있던 초과 데이터는 수동 DELETE로 정리.
 
 ### 4. 축하 페이지 비정상 접근 차단 (SessionStorage 티켓 검증)
 - **원리**: 게임 조건 달성 시 `sessionStorage`에 인증 티켓과 점수를 저장한 뒤 `suddenwinner.html`로 이동합니다. 축하 페이지 진입 시 티켓을 검증하고 즉시 폐기하여 URL 직접 접근, 새로고침, 주소 공유를 통한 재접속을 원천 차단합니다.
@@ -191,6 +193,36 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 - **문제 2**: `rankings`(가위바위보) 테이블 크론이 누락되어 있었습니다. `cleanup-rankings-daily`로 신규 등록했습니다.
 - **문제 3**: `abc_rank` 크론이 `cleanup-abc-rank-daily`와 `daily-abc-rank-cleanup` 두 개 중복 등록되어 있었습니다. `daily-abc-rank-cleanup`을 제거했습니다.
 - **수동 정리**: 크론 오류로 쌓인 `circle_rankings` 15개, `rankings` 초과분을 수동 DELETE로 각각 10개로 정리했습니다.
+
+### pg_cron 크론 syntax error 재정비 (2026-05-31)
+- **원인**: `clean_rankings_keep_top10` 크론이 여러 DELETE문을 하나의 `$$...$$` 블록에 묶어 실행하려 했으나, pg_cron은 `$$...$$` 안에 SQL 문 1개만 실행 가능하여 `syntax error at or near "DELETE"` 오류로 계속 실패했습니다. `cron.job_run_details` 테이블로 실패 로그 확인.
+- **해결**: 문제 크론 삭제 후 테이블별로 크론 1개씩 총 4개로 분리 재등록. 누적된 초과 데이터는 수동 DELETE로 정리.
+- **교훈**: pg_cron의 `$$...$$` 블록에는 반드시 SQL 문 1개만 작성해야 합니다.
+
+### 축하 페이지에서 해당 게임 탭으로 복귀 (2026-05-31)
+- **변경 전**: `suddenwinner.html`의 '다시 도전하기' 버튼이 `index.html`로 이동하여 항상 로그인 화면이 표시됨.
+- **해결**: 버튼 href를 `index.html?game=xxx`로 수정하고, `main.js`의 `saveUsername()` 완료 시 URL 파라미터 `?game=xxx`를 읽어 자동으로 해당 탭(`switchGame()`)으로 전환.
+
+### 블록쌓기 Top 10 하이라이트 미작동 버그 (2026-05-31)
+- **원인 1**: `loadBlockRankings`의 `.select('nickname, score, created_at')`에서 `id` 컬럼이 누락되어 `lastBlockUploadedId`와 비교 불가.
+- **원인 2**: `insert()`에 `.select()`가 없어 저장 후 반환된 `id`를 받지 못해 `lastBlockUploadedId`가 항상 `null`.
+- **해결**: `.select('id, nickname, score, created_at')`으로 수정, `insert().select()`로 반환된 id를 `lastBlockUploadedId`에 저장.
+
+### 블록쌓기 점수/순위 깜빡임 버그 (2026-05-31)
+- **원인**: `blockGameOver`에서 점수 텍스트를 먼저 표시하고 `loadBlockRankings`에서 순위를 추가하는 2단계 구조로 깜빡임 발생.
+- **해결**: 점수+순위를 `loadBlockRankings`에서 `innerHTML` 한 번에 세팅하도록 통합.
+
+### 블록쌓기 재게임 시 이전 판 하이라이트 잔존 버그 (2026-05-31)
+- **원인**: `lastBlockUploadedId`가 이전 판 id를 계속 유지하여 다음 판 랭킹 로드 시에도 이전 기록이 하이라이트됨.
+- **해결**: `blockInitGame()` 호출 시 `lastBlockUploadedId = null`로 초기화.
+
+### 블록쌓기 코드 구조 붕괴 버그 (2026-05-31)
+- **원인**: 누적된 수정 작업으로 `blockGameOver` 함수가 `loadBlockRankings` 함수 내부에 끼어들어 코드 구조가 완전히 깨짐.
+- **해결**: 중복 삽입된 `blockGameOver` 코드 제거 및 각 함수 구조 복원.
+
+### block_rank score 컬럼 정렬 오류 (2026-05-31)
+- **원인**: `score` 컬럼 타입이 `text`로 저장되어 숫자 정렬이 아닌 문자열 정렬(`9 > 10`)이 적용됨.
+- **해결**: 컬럼 타입을 `int4`로 변경하여 정상 정렬 처리.
 
 ---
 
