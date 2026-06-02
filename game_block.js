@@ -145,6 +145,7 @@ function blockInitGame() {
         blockFinalScoreEl.style.display = 'none';
         blockFinalScoreEl.innerHTML = '';
     }
+    lastBlockUploadedId = null; // 이전 판 하이라이트 초기화
 }
 
 function blockSpawnNextBlock() {
