@@ -288,9 +288,9 @@ async function blockGameOver() {
     if (blockStartBtn)    blockStartBtn.innerText = "다시 도전";
     if (blockOverlay)     blockOverlay.style.display = 'flex';
 
-    // 점수는 즉시 표시 (저장 완료 기다리지 않음)
+    // 점수+순위는 loadBlockRankings에서 한 번에 표시
     if (blockFinalScoreEl) {
-        blockFinalScoreEl.innerHTML = `쌓은 층수: <strong>${blockScore}</strong>층`;
+        blockFinalScoreEl.innerHTML = '';
         blockFinalScoreEl.style.display = 'block';
     }
 
@@ -399,13 +399,8 @@ async function loadBlockRankings(myScore = null) {
             const myRank = data.findIndex(r => r.score <= myScore) + 1;
             const scoreDisplay = document.getElementById('block-score-display');
             if (scoreDisplay) {
-                const existing = document.getElementById('block-rank-badge');
-                if (existing) existing.remove();
-                const rankSpan = document.createElement('span');
-                rankSpan.id = 'block-rank-badge';
-                rankSpan.style.cssText = 'font-size:1rem; color:#007bff; margin-left:8px;';
-                rankSpan.innerText = `🏅 전체 ${myRank}위`;
-                scoreDisplay.appendChild(rankSpan);
+                // 점수 + 순위 한 번에 세팅 (깜빡임 없음)
+                scoreDisplay.innerHTML = `쌓은 층수: <strong>${myScore}</strong>층 <span style="font-size:1rem; color:#007bff; margin-left:8px;">🏅 전체 ${myRank}위</span>`;
                 scoreDisplay.style.display = 'block';
             }
         }
