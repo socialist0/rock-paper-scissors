@@ -181,12 +181,12 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 - **해결**: 다른 게임 모듈과 동일하게 `generateVerificationToken()` → `generateVerificationHash()` 체인 방식으로 교체했습니다.
 
 ### 블록쌓기 재게임 시 순위 미표시 버그 (해결 완료)
-- **원인**: 타임락(60초) 안에 두 번째 게임을 하면 `canSaveBlockScore()`가 false를 반환하여 저장을 건너뛰면서 `loadBlockRankings()`에 `myScore`를 전달하지 않아 순위가 표시되지 않았습니다.
+- **원인**: 타임락(3초) 안에 두 번째 게임을 하면 `canSaveBlockScore()`가 false를 반환하여 저장을 건너뛰면서 `loadBlockRankings()`에 `myScore`를 전달하지 않아 순위가 표시되지 않았습니다.
 - **해결**: 타임락이 걸려도 `loadBlockRankings(blockScore)`로 점수를 전달하여 저장 여부와 관계없이 항상 순위가 표시되도록 수정했습니다.
 
 ### 블록쌓기 랭킹 Supabase 호출 최적화 (2회 → 1회)
 - **원인**: `loadBlockRankings()`에서 Top 10 조회 후 내 순위 계산을 위해 전체 데이터를 한 번 더 조회하는 구조로 딜레이가 발생했습니다.
-- **해결**: `limit(10)` 제거 후 전체 데이터를 1번만 조회하여 `slice(0, 10)`으로 Top 10 표시와 `findIndex`로 순위 계산을 동시에 처리합니다.
+- **해결**: `limit(10)` 제거 후 전체 데이터를 1번만 조회하여 `slice(0, 10)`으로 Top 10 표시와 `data.filter(r => r.score > myScore).length + 1`로 순위 계산을 동시에 처리합니다.
 
 ### pg_cron 크론 정비 (2025-05-28)
 - **문제 1**: `daily_ranking_keep_top10` 크론의 `ORDER BY created_at DESC` 오류 — 동점자 처리 기준이 잘못되어 크론이 예상대로 동작하지 않았습니다. `ASC`로 수정 재등록했습니다.
@@ -223,6 +223,13 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 ### block_rank score 컬럼 정렬 오류 (2026-05-31)
 - **원인**: `score` 컬럼 타입이 `text`로 저장되어 숫자 정렬이 아닌 문자열 정렬(`9 > 10`)이 적용됨.
 - **해결**: 컬럼 타입을 `int4`로 변경하여 정상 정렬 처리.
+
+### 블록쌓기 고득점 Supabase 미저장 버그 (2026-06-02)
+- **원인 1**: `blockGameOver()`에서 `blockSaveAndShowRank()`를 `await` 없이 호출하여, 저장이 완료되기 전에 `suddenwinner.html`로 페이지가 이동해버려 저장이 중단됨. `block_threshold`(기본값 9)를 초과하는 모든 점수가 영향을 받음.
+- **원인 2**: `loadBlockRankings()`의 순위 계산이 `data.findIndex(r => r.score <= myScore) + 1`로 동점자가 있거나 특정 상황에서 순위가 틀리게 표시됨.
+- **해결 1**: `await blockSaveAndShowRank()`로 수정하여 저장 완료 후 페이지 이동하도록 처리.
+- **해결 2**: 순위 계산을 `data.filter(r => r.score > myScore).length + 1`로 수정.
+- **추가**: 타임락을 60초 → 3초로 단축. 102층을 쌓는 데 60초 이상 걸리므로 실질적 차단은 없었으나, 연속 도배 방지 목적에 맞게 조정.
 
 ---
 
