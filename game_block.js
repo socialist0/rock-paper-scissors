@@ -7,26 +7,26 @@ let blockCanvas, blockCtx;
 let blockScoreEl, blockOverlay, blockStartBtn, blockTitleEl, blockFinalScoreEl;
 
 // ── 게임 상태 ──
-const BLOCK_CANVAS_WIDTH  = 400;
+const BLOCK_CANVAS_WIDTH = 400;
 const BLOCK_CANVAS_HEIGHT = 500;
-const BLOCK_GAME_SPEED    = 4;
+const BLOCK_GAME_SPEED = 4;
 
-let blockGameActive   = false;
+let blockGameActive = false;
 let blockIsCollapsing = false;
-let blockScore        = 0;
-let blockStack        = [];
+let blockScore = 0;
+let blockStack = [];
 let blockCurrentBlock = {};
-let blockCameraY      = 0;
+let blockCameraY = 0;
 let blockTargetCameraY = 0;
 let lastBlockUploadedId = null; // 하이라이트용
 
 const blockColors = [
-    '#ff595e','#ffca3a','#8ac926','#1982c4',
-    '#6a4c93','#ff924c','#4febfe','#e85d04','#06d6a0'
+    '#ff595e', '#ffca3a', '#8ac926', '#1982c4',
+    '#6a4c93', '#ff924c', '#4febfe', '#e85d04', '#06d6a0'
 ];
 
 // ── 랭킹 저장 타임락 (security.js 패턴 동일) ──
-const BLOCK_SAVE_COOLDOWN_MS = 60 * 1000;
+const BLOCK_SAVE_COOLDOWN_MS = 3 * 1000;
 
 function canSaveBlockScore() {
     const last = localStorage.getItem('block_last_save');
@@ -43,25 +43,25 @@ function markBlockSaveTime() {
 // ==========================================
 class BlockPiece {
     constructor(x, y, width, height, color, speed, direction, type) {
-        this.x         = x;
-        this.y         = y;
-        this.width     = width;
-        this.height    = height;
-        this.color     = color;
-        this.speed     = speed;
+        this.x = x;
+        this.y = y;
+        this.width = width;
+        this.height = height;
+        this.color = color;
+        this.speed = speed;
         this.direction = direction;
-        this.type      = type;
+        this.type = type;
         this.topWidthOffset = this.type === 'trapezoid' ? this.width * 0.15 : 0;
 
         const baseMass = this.width * this.height;
         this.mass = this.type === 'trapezoid' ? baseMass * 0.85 : baseMass;
 
         this.isBreaking = false;
-        this.fallAngle  = 0;
-        this.fallSpeed  = 0;
-        this.pivotX     = 0;
-        this.pivotY     = 0;
-        this.velY       = 0;
+        this.fallAngle = 0;
+        this.fallSpeed = 0;
+        this.pivotX = 0;
+        this.pivotY = 0;
+        this.velY = 0;
     }
 
     getCenter() {
@@ -70,7 +70,7 @@ class BlockPiece {
 
     getTopSurfaceBounds() {
         return {
-            left:  this.x + this.topWidthOffset,
+            left: this.x + this.topWidthOffset,
             right: this.x + this.width - this.topWidthOffset
         };
     }
@@ -87,17 +87,17 @@ class BlockPiece {
     }
 
     drawAtOrigin(ctx) {
-        ctx.fillStyle   = this.color;
+        ctx.fillStyle = this.color;
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-        ctx.lineWidth   = 1;
+        ctx.lineWidth = 1;
         ctx.beginPath();
         if (this.type === 'rectangle') {
             ctx.rect(-this.width / 2, -this.height / 2, this.width, this.height);
         } else if (this.type === 'trapezoid') {
             ctx.moveTo(-this.width / 2, this.height / 2);
             ctx.lineTo(-this.width / 2 + this.topWidthOffset, -this.height / 2);
-            ctx.lineTo( this.width / 2 - this.topWidthOffset, -this.height / 2);
-            ctx.lineTo( this.width / 2, this.height / 2);
+            ctx.lineTo(this.width / 2 - this.topWidthOffset, -this.height / 2);
+            ctx.lineTo(this.width / 2, this.height / 2);
         }
         ctx.closePath();
         ctx.fill();
@@ -105,15 +105,15 @@ class BlockPiece {
     }
 
     drawNormal(ctx, offsetY) {
-        ctx.fillStyle   = this.color;
+        ctx.fillStyle = this.color;
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
-        ctx.lineWidth   = 1;
+        ctx.lineWidth = 1;
         ctx.beginPath();
         if (this.type === 'rectangle') {
             ctx.rect(this.x, this.y + offsetY, this.width, this.height);
         } else if (this.type === 'trapezoid') {
-            ctx.moveTo(this.x,              this.y + this.height + offsetY);
-            ctx.lineTo(this.x + this.topWidthOffset,         this.y + offsetY);
+            ctx.moveTo(this.x, this.y + this.height + offsetY);
+            ctx.lineTo(this.x + this.topWidthOffset, this.y + offsetY);
             ctx.lineTo(this.x + this.width - this.topWidthOffset, this.y + offsetY);
             ctx.lineTo(this.x + this.width, this.y + this.height + offsetY);
         }
@@ -127,9 +127,9 @@ class BlockPiece {
 // 게임 초기화 및 진행
 // ==========================================
 function blockInitGame() {
-    blockScore        = 0;
-    blockStack        = [];
-    blockCameraY      = 0;
+    blockScore = 0;
+    blockStack = [];
+    blockCameraY = 0;
     blockTargetCameraY = 0;
     blockIsCollapsing = false;
 
@@ -149,14 +149,14 @@ function blockInitGame() {
 }
 
 function blockSpawnNextBlock() {
-    const lastBlock    = blockStack[blockStack.length - 1];
-    const randomWidth  = Math.floor(Math.random() * (150 - 60 + 1)) + 60;
+    const lastBlock = blockStack[blockStack.length - 1];
+    const randomWidth = Math.floor(Math.random() * (150 - 60 + 1)) + 60;
     const randomHeight = Math.floor(Math.random() * (50 - 15 + 1)) + 15;
-    const randomColor  = blockColors[Math.floor(Math.random() * blockColors.length)];
-    const types        = ['rectangle', 'trapezoid'];
-    const randomType   = types[Math.floor(Math.random() * types.length)];
-    const startX       = Math.random() < 0.5 ? -randomWidth : BLOCK_CANVAS_WIDTH;
-    const dir          = startX < 0 ? 1 : -1;
+    const randomColor = blockColors[Math.floor(Math.random() * blockColors.length)];
+    const types = ['rectangle', 'trapezoid'];
+    const randomType = types[Math.floor(Math.random() * types.length)];
+    const startX = Math.random() < 0.5 ? -randomWidth : BLOCK_CANVAS_WIDTH;
+    const dir = startX < 0 ? 1 : -1;
 
     blockCurrentBlock = new BlockPiece(
         startX,
@@ -177,15 +177,15 @@ function blockSpawnNextBlock() {
 function blockHandleDrop() {
     if (!blockGameActive || blockIsCollapsing) return;
 
-    const topBlock   = blockStack[blockStack.length - 1];
+    const topBlock = blockStack[blockStack.length - 1];
     const topSurface = topBlock.getTopSurfaceBounds();
 
     const hasOverlap = (blockCurrentBlock.x < topSurface.right) &&
-                       (blockCurrentBlock.x + blockCurrentBlock.width > topSurface.left);
+        (blockCurrentBlock.x + blockCurrentBlock.width > topSurface.left);
 
     if (!hasOverlap) {
         const fallDir = (blockCurrentBlock.getCenter() > topBlock.getCenter()) ? "right" : "left";
-        const pX      = fallDir === "right" ? topSurface.right : topSurface.left;
+        const pX = fallDir === "right" ? topSurface.right : topSurface.left;
         blockTriggerMultiCollapse(blockStack.length - 1, fallDir, pX);
         return;
     }
@@ -206,22 +206,22 @@ function blockHandleDrop() {
 
 function blockCheckStackStability() {
     for (let i = 0; i < blockStack.length - 1; i++) {
-        const supportBlock   = blockStack[i];
+        const supportBlock = blockStack[i];
         const supportSurface = supportBlock.getTopSurfaceBounds();
 
-        let totalMass         = 0;
+        let totalMass = 0;
         let weightedCenterSum = 0;
 
         for (let j = i + 1; j < blockStack.length; j++) {
             const upperBlock = blockStack[j];
-            totalMass         += upperBlock.mass;
+            totalMass += upperBlock.mass;
             weightedCenterSum += upperBlock.getCenter() * upperBlock.mass;
         }
 
         const cog = weightedCenterSum / totalMass;
 
         if (cog < supportSurface.left) {
-            return { stable: false, direction: "left",  pivotX: supportSurface.left,  breakIndex: i };
+            return { stable: false, direction: "left", pivotX: supportSurface.left, breakIndex: i };
         } else if (cog > supportSurface.right) {
             return { stable: false, direction: "right", pivotX: supportSurface.right, breakIndex: i };
         }
@@ -230,40 +230,40 @@ function blockCheckStackStability() {
 }
 
 function blockTriggerMultiCollapse(brokenIndex, mainDirection, initialPivotX) {
-    blockGameActive   = false;
+    blockGameActive = false;
     blockIsCollapsing = true;
 
-    blockCameraY      += 50;
+    blockCameraY += 50;
     blockTargetCameraY = 0;
 
     const baseRotSpeed = mainDirection === "right" ? 0.02 : -0.02;
 
     blockCurrentBlock.isBreaking = true;
-    blockCurrentBlock.fallSpeed  = baseRotSpeed * 1.2;
-    blockCurrentBlock.pivotX     = blockCurrentBlock.getCenter();
-    blockCurrentBlock.pivotY     = blockCurrentBlock.y + blockCurrentBlock.height / 2;
+    blockCurrentBlock.fallSpeed = baseRotSpeed * 1.2;
+    blockCurrentBlock.pivotX = blockCurrentBlock.getCenter();
+    blockCurrentBlock.pivotY = blockCurrentBlock.y + blockCurrentBlock.height / 2;
 
     for (let i = brokenIndex; i < blockStack.length; i++) {
         if (i === 0) continue;
         blockStack[i].isBreaking = true;
         const multiplier = 1 + (i - brokenIndex) * 0.2;
         blockStack[i].fallSpeed = baseRotSpeed * multiplier;
-        blockStack[i].pivotX    = blockStack[i].getCenter();
-        blockStack[i].pivotY    = blockStack[i].y + blockStack[i].height / 2;
+        blockStack[i].pivotX = blockStack[i].getCenter();
+        blockStack[i].pivotY = blockStack[i].y + blockStack[i].height / 2;
     }
 
     const subAffectRange = Math.max(1, brokenIndex - 2);
     for (let i = subAffectRange; i < brokenIndex; i++) {
         blockStack[i].isBreaking = true;
-        blockStack[i].fallSpeed  = baseRotSpeed * 0.4;
-        blockStack[i].pivotX     = blockStack[i].getCenter();
-        blockStack[i].pivotY     = blockStack[i].y + blockStack[i].height / 2;
+        blockStack[i].fallSpeed = baseRotSpeed * 0.4;
+        blockStack[i].pivotX = blockStack[i].getCenter();
+        blockStack[i].pivotY = blockStack[i].y + blockStack[i].height / 2;
     }
 }
 
 function blockDrawBackgroundGrid(offsetY) {
     blockCtx.strokeStyle = 'rgba(255, 255, 255, 0.03)';
-    blockCtx.lineWidth   = 1;
+    blockCtx.lineWidth = 1;
     const startY = offsetY % 40;
     for (let y = startY; y < BLOCK_CANVAS_HEIGHT; y += 40) {
         blockCtx.beginPath();
@@ -285,9 +285,9 @@ function blockDrawBackgroundGrid(offsetY) {
 async function blockGameOver() {
     blockIsCollapsing = false;
 
-    if (blockTitleEl)     blockTitleEl.innerText = "WEIGHT CRASHED!";
-    if (blockStartBtn)    blockStartBtn.innerText = "다시 도전";
-    if (blockOverlay)     blockOverlay.style.display = 'flex';
+    if (blockTitleEl) blockTitleEl.innerText = "WEIGHT CRASHED!";
+    if (blockStartBtn) blockStartBtn.innerText = "다시 도전";
+    if (blockOverlay) blockOverlay.style.display = 'flex';
 
     // 점수+순위는 loadBlockRankings에서 한 번에 표시
     if (blockFinalScoreEl) {
@@ -295,8 +295,8 @@ async function blockGameOver() {
         blockFinalScoreEl.style.display = 'block';
     }
 
-    // 저장 + 랭킹 로드는 백그라운드로 (await 제거)
-    blockSaveAndShowRank();
+    // 저장 + 랭킹 로드
+    await blockSaveAndShowRank();
 
     // 축하 페이지 분기
     const threshold = (typeof BLOCK_THRESHOLD !== 'undefined') ? BLOCK_THRESHOLD : 9;
@@ -312,44 +312,46 @@ async function blockSaveAndShowRank() {
         loadBlockRankings();
         return;
     }
-    if (!canSaveBlockScore()) {
-        loadBlockRankings(blockScore); // 타임락이어도 순위는 표시
-        return;
+
+    // ① 랭킹을 먼저 불러와서 즉시 순위 표시 (딜레이 제거)
+    const rankPromise = loadBlockRankings(blockScore);
+
+    // ② 저장은 타임락 체크 후 백그라운드로 병렬 실행
+    if (canSaveBlockScore() && initSupabase()) {
+        (async () => {
+            try {
+                let token = null;
+                if (typeof generateVerificationToken === 'function') {
+                    token = generateVerificationToken(currentUsername, blockScore);
+                } else if (typeof generateVerificationHash === 'function') {
+                    token = generateVerificationHash(currentUsername, blockScore);
+                }
+
+                const { data: insertData, error } = await window._supabase
+                    .from('block_rank')
+                    .insert([{
+                        nickname: currentUsername,
+                        score: blockScore,
+                        verification_token: token
+                    }])
+                    .select();
+
+                if (error) throw error;
+                if (insertData && insertData.length > 0) {
+                    lastBlockUploadedId = String(insertData[0].id);
+                }
+                markBlockSaveTime();
+
+                // 저장 완료 후 랭킹 다시 로드 (하이라이트 반영)
+                loadBlockRankings(blockScore);
+            } catch (err) {
+                console.warn('[block_rank 저장 실패]', err);
+            }
+        })();
     }
-    if (!initSupabase()) {
-        loadBlockRankings(blockScore);
-        return;
-    }
 
-    try {
-        // 해시 토큰 생성 (security.js 패턴 동일)
-        let token = null;
-        if (typeof generateVerificationToken === 'function') {
-            token = generateVerificationToken(currentUsername, blockScore);
-        } else if (typeof generateVerificationHash === 'function') {
-            token = generateVerificationHash(currentUsername, blockScore);
-        }
-
-        const { data: insertData, error } = await window._supabase
-            .from('block_rank')
-            .insert([{
-                nickname:           currentUsername,
-                score:              blockScore,
-                verification_token: token
-            }])
-            .select();
-
-        if (error) throw error;
-        if (insertData && insertData.length > 0) {
-            lastBlockUploadedId = String(insertData[0].id);
-        }
-        markBlockSaveTime();
-    } catch (err) {
-        console.warn('[block_rank 저장 실패]', err);
-    }
-
-    // 저장 후 내 순위 포함해서 랭킹 로드
-    await loadBlockRankings(blockScore);
+    // ① 랭킹 첫 로드 완료까지 대기 (오버레이 표시 보장)
+    await rankPromise;
 }
 
 // ==========================================
@@ -397,7 +399,7 @@ async function loadBlockRankings(myScore = null) {
 
         // 내 순위 계산 (같은 data로 바로 처리, 추가 쿼리 없음)
         if (myScore !== null && currentUsername) {
-            const myRank = data.findIndex(r => r.score <= myScore) + 1;
+            const myRank = data.filter(r => r.score > myScore).length + 1;
             const scoreDisplay = document.getElementById('block-score-display');
             if (scoreDisplay) {
                 // 점수 + 순위 한 번에 세팅 (깜빡임 없음)
@@ -432,7 +434,7 @@ function blockAnimate() {
         let allOutOffScreen = true;
 
         if (blockCurrentBlock.isBreaking) {
-            blockCurrentBlock.velY   += 0.3;
+            blockCurrentBlock.velY += 0.3;
             blockCurrentBlock.pivotY += blockCurrentBlock.velY;
             blockCurrentBlock.pivotX += blockCurrentBlock.fallSpeed * 15;
             blockCurrentBlock.fallAngle += blockCurrentBlock.fallSpeed;
@@ -441,7 +443,7 @@ function blockAnimate() {
 
         blockStack.forEach(block => {
             if (block.isBreaking) {
-                block.velY   += 0.3;
+                block.velY += 0.3;
                 block.pivotY += block.velY;
                 block.pivotX += block.fallSpeed * 15;
                 block.fallAngle += block.fallSpeed;
@@ -466,7 +468,7 @@ function blockAnimate() {
         }
 
         if (allOutOffScreen && blockCameraY === 0) {
-            blockGameOver();
+            await blockGameOver();
         }
     } else {
         blockStack.forEach(block => block.drawNormal(blockCtx, blockCameraY));
@@ -483,11 +485,11 @@ function blockAnimate() {
 // 초기화 (window load 시 호출)
 // ==========================================
 function initBlockGame() {
-    blockCanvas      = document.getElementById('blockCanvas');
-    blockScoreEl     = document.getElementById('block-score');
-    blockOverlay     = document.getElementById('block-overlay');
-    blockStartBtn    = document.getElementById('block-start-btn');
-    blockTitleEl     = document.getElementById('block-title');
+    blockCanvas = document.getElementById('blockCanvas');
+    blockScoreEl = document.getElementById('block-score');
+    blockOverlay = document.getElementById('block-overlay');
+    blockStartBtn = document.getElementById('block-start-btn');
+    blockTitleEl = document.getElementById('block-title');
     blockFinalScoreEl = document.getElementById('block-score-display');
 
     if (!blockCanvas) return;
@@ -528,11 +530,11 @@ window.addEventListener('load', () => {
 function formatBlockDate(isoString) {
     const d = new Date(isoString);
     const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-    const yy  = String(kst.getUTCFullYear()).slice(2);
-    const mo  = String(kst.getUTCMonth() + 1).padStart(2, '0');
-    const dd  = String(kst.getUTCDate()).padStart(2, '0');
-    const hh  = String(kst.getUTCHours()).padStart(2, '0');
-    const mm  = String(kst.getUTCMinutes()).padStart(2, '0');
-    const ss  = String(kst.getUTCSeconds()).padStart(2, '0');
+    const yy = String(kst.getUTCFullYear()).slice(2);
+    const mo = String(kst.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(kst.getUTCDate()).padStart(2, '0');
+    const hh = String(kst.getUTCHours()).padStart(2, '0');
+    const mm = String(kst.getUTCMinutes()).padStart(2, '0');
+    const ss = String(kst.getUTCSeconds()).padStart(2, '0');
     return `${yy}/${mo}/${dd} ${hh}:${mm}:${ss}`;
 }
