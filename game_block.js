@@ -132,6 +132,7 @@ function blockInitGame() {
     blockCameraY = 0;
     blockTargetCameraY = 0;
     blockIsCollapsing = false;
+    blockGameOverCalled = false;
 
     if (blockScoreEl) blockScoreEl.innerText = blockScore;
 
@@ -467,8 +468,9 @@ function blockAnimate() {
             blockCtx.restore();
         }
 
-        if (allOutOffScreen && blockCameraY === 0) {
-            await blockGameOver();
+        if (allOutOffScreen && blockCameraY === 0 && !blockGameOverCalled) {
+            blockGameOverCalled = true;
+            blockGameOver();
         }
     } else {
         blockStack.forEach(block => block.drawNormal(blockCtx, blockCameraY));
