@@ -128,7 +128,6 @@ function showNicknameModal(score, rank, onConfirm) {
         input.blur();
         setTimeout(() => {
             const name = input.value.trim();
-            console.log('name:', name, 'validate:', validateUsername(name)); // 추가
             if (!name) {
                 input.focus();
                 input.classList.add('shake');
@@ -155,7 +154,7 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    confirmBtn.addEventListener('click', handleConfirm);
+    confirmBtn.addEventListener('mousedown', handleConfirm);
     skip.addEventListener('click', handleSkip);
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
