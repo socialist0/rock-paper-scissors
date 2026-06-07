@@ -56,8 +56,8 @@ async function handleRpsGameOver(score) {
         .select('score')
         .order('score', { ascending: false });
 
-    const rank = allData ? allData.filter(r => r.score > score).length + 1 : 999;
-
+    const top10 = allData ? allData.slice(0, 10) : [];
+    const rank = top10.length < 10 ? allData.filter(r => r.score > score).length + 1 : top10.filter(r => r.score > score).length + 1;
     // 2. 닉네임 분기
     const doSave = async (nickname) => {
         await uploadRpsScore(score, nickname);
