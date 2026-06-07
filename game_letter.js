@@ -2,22 +2,21 @@
 // game_letter.js — 앞뒤 맞추기 서바이벌 게임 모듈
 // ==========================================
 
-// ---- 게임 상태 변수 ----
 const LETTER_LIMIT_TIME = 5.0;
 const letter_alphabet = 'abcdefghijklmnopqrstuvwxyz';
-const letter_hangul   = 'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ';
+const letter_hangul = 'ㄱㄴㄷㄹㅁㅂㅅㅇㅈㅊㅋㅌㅍㅎ';
 
-let letterCurrentSet  = '';
+let letterCurrentSet = '';
 let letterTargetIndex = -1;
-let letterPrev        = '';
-let letterNext        = '';
-let letterStep        = 0;
+let letterPrev = '';
+let letterNext = '';
+let letterStep = 0;
 
-let letterStartTime     = 0;
+let letterStartTime = 0;
 let letterTimerInterval = null;
-let letterIsPlaying     = false;
+let letterIsPlaying = false;
 
-let letterStreak        = 0;
+let letterStreak = 0;
 let lastLetterUploadedId = null;
 
 
@@ -37,7 +36,7 @@ function initLetterGame() {
 
 function nextLetterQuestion() {
     letterIsPlaying = true;
-    letterStep      = 0;
+    letterStep = 0;
 
     const timerEl = document.getElementById('letter-timer');
     if (timerEl) {
@@ -54,20 +53,18 @@ function nextLetterQuestion() {
     const instrEl = document.getElementById('letter-instruction');
     if (instrEl) instrEl.textContent = '앞 글자 채우기 단계를 진행 중입니다.';
 
-    // 50% 확률로 알파벳 / 한글 선택
     if (Math.random() < 0.5) {
-        letterCurrentSet  = letter_alphabet;
+        letterCurrentSet = letter_alphabet;
         letterTargetIndex = Math.floor(Math.random() * 24) + 1;
     } else {
-        letterCurrentSet  = letter_hangul;
+        letterCurrentSet = letter_hangul;
         letterTargetIndex = Math.floor(Math.random() * 12) + 1;
     }
 
     const target = letterCurrentSet[letterTargetIndex];
-    letterPrev   = letterCurrentSet[letterTargetIndex - 1];
-    letterNext   = letterCurrentSet[letterTargetIndex + 1];
+    letterPrev = letterCurrentSet[letterTargetIndex - 1];
+    letterNext = letterCurrentSet[letterTargetIndex + 1];
 
-    // 문제 영역 구성
     const quizArea = document.getElementById('letter-quiz-area');
     if (quizArea) {
         quizArea.innerHTML = `
@@ -77,7 +74,6 @@ function nextLetterQuestion() {
         `;
     }
 
-    // 보기 생성 (정답 2개 + 오답 4개)
     const choices = [letterPrev, letterNext];
     while (choices.length < 6) {
         const rand = letterCurrentSet[Math.floor(Math.random() * letterCurrentSet.length)];
@@ -98,7 +94,7 @@ function nextLetterQuestion() {
     }
 
     clearInterval(letterTimerInterval);
-    letterStartTime    = performance.now();
+    letterStartTime = performance.now();
     letterTimerInterval = setInterval(updateLetterCountdown, 10);
 }
 
@@ -107,9 +103,9 @@ function nextLetterQuestion() {
 // 2. 타이머 및 입력 처리
 // ==========================================
 function updateLetterCountdown() {
-    const elapsed   = (performance.now() - letterStartTime) / 1000;
-    let remaining   = LETTER_LIMIT_TIME - elapsed;
-    const timerEl   = document.getElementById('letter-timer');
+    const elapsed = (performance.now() - letterStartTime) / 1000;
+    let remaining = LETTER_LIMIT_TIME - elapsed;
+    const timerEl = document.getElementById('letter-timer');
 
     if (remaining <= 0) {
         remaining = 0;
@@ -133,7 +129,7 @@ function handleLetterChoice(letter, btn) {
 
             const leftBox = document.getElementById('letter-left-box');
             if (leftBox) {
-                leftBox.textContent   = letterPrev;
+                leftBox.textContent = letterPrev;
                 leftBox.style.borderStyle = 'solid';
                 leftBox.style.borderColor = '#ed8936';
             }
@@ -163,7 +159,7 @@ function handleLetterChoice(letter, btn) {
 
 
 // ==========================================
-// 3. 게임 오버 및 Supabase 업로드
+// 3. 게임 오버 — 닉네임 분기 포함
 // ==========================================
 function letterGameOver(reason) {
     clearInterval(letterTimerInterval);
@@ -183,13 +179,11 @@ function letterGameOver(reason) {
     const instrEl = document.getElementById('letter-instruction');
     if (instrEl) instrEl.textContent = '아쉽네요! 정답을 확인하고 다시 도전해 보세요.';
 
-    // 빈 칸 정답 표시
-    const leftBox  = document.getElementById('letter-left-box');
+    const leftBox = document.getElementById('letter-left-box');
     const rightBox = document.getElementById('letter-right-box');
-    if (leftBox)  { leftBox.textContent  = letterPrev; leftBox.style.color  = '#3182ce'; }
+    if (leftBox) { leftBox.textContent = letterPrev; leftBox.style.color = '#3182ce'; }
     if (rightBox) { rightBox.textContent = letterNext; rightBox.style.color = '#38a169'; }
 
-    // 보기 버튼 정답 표시
     document.querySelectorAll('.letter-choice-btn').forEach(btn => {
         btn.classList.remove('letter-selected');
         if (btn.textContent === letterPrev) {
@@ -201,32 +195,65 @@ function letterGameOver(reason) {
 
     const startBtn = document.getElementById('letter-start-btn');
     if (startBtn) {
-        startBtn.textContent  = '다시 도전하기';
+        startBtn.textContent = '다시 도전하기';
         startBtn.style.display = 'block';
     }
 
-    // 연승 0이면 저장 불필요
     if (letterStreak > 0) {
-        uploadLetterScore(letterStreak);
+        handleLetterGameOver(letterStreak);
     } else {
         lastLetterUploadedId = null;
     }
 }
 
-async function uploadLetterScore(score) {
+async function handleLetterGameOver(score) {
+    if (!initSupabase()) return;
+
+    // 1. 순위 계산
+    const { data: allData } = await window._supabase
+        .from('abc_rank')
+        .select('score')
+        .order('score', { ascending: false });
+
+    const rank = allData ? allData.filter(r => r.score > score).length + 1 : 999;
+
+    // 2. 닉네임 분기
+    const doSave = async (nickname) => {
+        await uploadLetterScore(score, nickname);
+
+        // 3. suddenwinner 조건 — 저장 완료 후 이동
+        if (score >= ABC_THRESHOLD) {
+            sessionStorage.setItem('abc_celebration_verified', 'true');
+            sessionStorage.setItem('abc_celebration_score', score.toString());
+            setTimeout(() => {
+                window.location.href = `suddenwinner.html?game=abc&score=${score}`;
+            }, 800);
+        }
+    };
+
+    if (currentUsername) {
+        await doSave(currentUsername);
+    } else if (rank <= 10) {
+        showNicknameModal(score, rank, doSave);
+    } else {
+        await doSave('outranker');
+    }
+}
+
+async function uploadLetterScore(score, nickname) {
     if (!initSupabase()) return;
     try {
         let verificationHash = '';
         if (typeof generateVerificationToken === 'function') {
-            verificationHash = generateVerificationToken(currentUsername, score);
+            verificationHash = generateVerificationToken(nickname, score);
         } else if (typeof generateVerificationHash === 'function') {
-            verificationHash = generateVerificationHash(currentUsername, score);
+            verificationHash = generateVerificationHash(nickname, score);
         }
 
         const { data, error } = await window._supabase
             .from('abc_rank')
             .insert([{
-                username: currentUsername,
+                username: nickname,
                 score: score,
                 verification_token: verificationHash
             }])
@@ -272,7 +299,6 @@ async function fetchLetterRankings({ showMyRank = false, myScore = null } = {}) 
             return;
         }
 
-        // 동일 닉네임 + 동일 점수 중복 제거
         const uniqueRankings = [];
         const seenPairs = new Set();
         for (const player of data) {
@@ -299,7 +325,6 @@ async function fetchLetterRankings({ showMyRank = false, myScore = null } = {}) 
             rankingList.appendChild(li);
         });
 
-        // 졌을 때 result-text에 최종기록 + 순위 표시
         if (showMyRank && myScore !== null && lastLetterUploadedId) {
             const allUnique = [];
             const allSeen = new Set();
@@ -318,33 +343,24 @@ async function fetchLetterRankings({ showMyRank = false, myScore = null } = {}) 
             }
         }
 
-        // 축하 페이지 이동 조건
-        if (showMyRank && myScore !== null && myScore >= ABC_THRESHOLD) {
-            sessionStorage.setItem('abc_celebration_verified', 'true');
-            sessionStorage.setItem('abc_celebration_score', myScore.toString());
-            setTimeout(() => {
-                window.location.href = `suddenwinner.html?game=abc&score=${myScore}`;
-            }, 800);
-        }
-
     } catch (err) {
         console.error('앞뒤 맞추기 랭킹 로드 실패:', err);
     }
 }
 
-// 게임 진입 시 랭킹 초기 로드
 function loadLetterRankings() {
     fetchLetterRankings();
 }
+
 // ── 공통 날짜 포맷: yy/mm/dd hh:mm:ss (KST) ──
 function formatBlockDate(isoString) {
     const d = new Date(isoString);
     const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-    const yy  = String(kst.getUTCFullYear()).slice(2);
-    const mo  = String(kst.getUTCMonth() + 1).padStart(2, '0');
-    const dd  = String(kst.getUTCDate()).padStart(2, '0');
-    const hh  = String(kst.getUTCHours()).padStart(2, '0');
-    const mm  = String(kst.getUTCMinutes()).padStart(2, '0');
-    const ss  = String(kst.getUTCSeconds()).padStart(2, '0');
+    const yy = String(kst.getUTCFullYear()).slice(2);
+    const mo = String(kst.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(kst.getUTCDate()).padStart(2, '0');
+    const hh = String(kst.getUTCHours()).padStart(2, '0');
+    const mm = String(kst.getUTCMinutes()).padStart(2, '0');
+    const ss = String(kst.getUTCSeconds()).padStart(2, '0');
     return `${yy}/${mo}/${dd} ${hh}:${mm}:${ss}`;
 }

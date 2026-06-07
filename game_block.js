@@ -290,68 +290,91 @@ async function blockGameOver() {
     if (blockStartBtn) blockStartBtn.innerText = "다시 도전";
     if (blockOverlay) blockOverlay.style.display = 'flex';
 
-    // 점수+순위는 loadBlockRankings에서 한 번에 표시
     if (blockFinalScoreEl) {
         blockFinalScoreEl.innerHTML = '';
         blockFinalScoreEl.style.display = 'block';
     }
 
-    // 저장 + 랭킹 로드
-    await blockSaveAndShowRank();
-
-    // 축하 페이지 분기
-    const threshold = (typeof BLOCK_THRESHOLD !== 'undefined') ? BLOCK_THRESHOLD : 9;
-    if (blockScore >= threshold && currentUsername) {
-        sessionStorage.setItem('block_celebration_verified', 'true');
-        sessionStorage.setItem('block_celebration_score', String(blockScore));
-        window.location.href = `suddenwinner.html?game=block&score=${blockScore}`;
-    }
-}
-
-async function blockSaveAndShowRank() {
-    if (!currentUsername || blockScore <= 0) {
+    if (blockScore <= 0) {
         loadBlockRankings();
         return;
     }
 
-    // ① 랭킹을 먼저 불러와서 즉시 순위 표시 (딜레이 제거)
-    const rankPromise = loadBlockRankings(blockScore);
+    await handleBlockGameOver(blockScore);
+}
 
-    // ② 저장은 타임락 체크 후 백그라운드로 병렬 실행
+async function handleBlockGameOver(score) {
+    if (!initSupabase()) return;
+
+    // 1. 순위 계산
+    const { data: allData } = await window._supabase
+        .from('block_rank')
+        .select('score')
+        .order('score', { ascending: false });
+
+    const rank = allData ? allData.filter(r => r.score > score).length + 1 : 999;
+
+    // 2. 닉네임 분기
+    const doSave = async (nickname) => {
+        await blockSaveAndShowRank(score, nickname);
+
+        // 3. suddenwinner 조건 — 저장 완료 후 이동
+        const threshold = (typeof BLOCK_THRESHOLD !== 'undefined') ? BLOCK_THRESHOLD : 9;
+        if (score >= threshold) {
+            sessionStorage.setItem('block_celebration_verified', 'true');
+            sessionStorage.setItem('block_celebration_score', String(score));
+            window.location.href = `suddenwinner.html?game=block&score=${score}`;
+        }
+    };
+
+    if (currentUsername) {
+        await doSave(currentUsername);
+    } else if (rank <= 10) {
+        showNicknameModal(score, rank, doSave);
+    } else {
+        await doSave('outranker');
+    }
+}
+
+async function blockSaveAndShowRank(score, nickname) {
+    // ① 순위 먼저 표시
+    const rankPromise = loadBlockRankings(score);
+
+    // ② 저장 (타임락 체크)
     if (canSaveBlockScore() && initSupabase()) {
-        (async () => {
-            try {
-                let token = null;
-                if (typeof generateVerificationToken === 'function') {
-                    token = generateVerificationToken(currentUsername, blockScore);
-                } else if (typeof generateVerificationHash === 'function') {
-                    token = generateVerificationHash(currentUsername, blockScore);
-                }
-
-                const { data: insertData, error } = await window._supabase
-                    .from('block_rank')
-                    .insert([{
-                        nickname: currentUsername,
-                        score: blockScore,
-                        verification_token: token
-                    }])
-                    .select();
-
-                if (error) throw error;
-                if (insertData && insertData.length > 0) {
-                    lastBlockUploadedId = String(insertData[0].id);
-                }
-                markBlockSaveTime();
-
-                // 저장 완료 후 랭킹 다시 로드 (하이라이트 반영)
-                loadBlockRankings(blockScore);
-            } catch (err) {
-                console.warn('[block_rank 저장 실패]', err);
+        try {
+            let token = null;
+            if (typeof generateVerificationToken === 'function') {
+                token = generateVerificationToken(nickname, score);
+            } else if (typeof generateVerificationHash === 'function') {
+                token = generateVerificationHash(nickname, score);
             }
-        })();
+
+            const { data: insertData, error } = await window._supabase
+                .from('block_rank')
+                .insert([{
+                    nickname: nickname,
+                    score: score,
+                    verification_token: token
+                }])
+                .select();
+
+            if (error) throw error;
+            if (insertData && insertData.length > 0) {
+                lastBlockUploadedId = String(insertData[0].id);
+            }
+            markBlockSaveTime();
+
+            // 저장 후 하이라이트 반영
+            loadBlockRankings(score);
+        } catch (err) {
+            console.warn('[block_rank 저장 실패]', err);
+        }
+    } else {
+        // 타임락으로 저장 스킵해도 순위는 표시
+        loadBlockRankings(score);
     }
 
-    // ① 랭킹 첫 로드 완료까지 대기 (오버레이 표시 보장)
     await rankPromise;
 }
 
@@ -399,7 +422,7 @@ async function loadBlockRankings(myScore = null) {
         });
 
         // 내 순위 계산 (같은 data로 바로 처리, 추가 쿼리 없음)
-        if (myScore !== null && currentUsername) {
+        if (myScore !== null) {
             const myRank = data.filter(r => r.score > myScore).length + 1;
             const scoreDisplay = document.getElementById('block-score-display');
             if (scoreDisplay) {

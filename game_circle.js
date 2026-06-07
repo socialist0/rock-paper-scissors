@@ -1,7 +1,7 @@
 const canvas = document.getElementById('drawCanvas');
 let ctx = canvas ? canvas.getContext('2d') : null;
 let isDrawing = false;
-let points = []; 
+let points = [];
 
 let lastUploadedId = null;
 
@@ -9,7 +9,7 @@ let lastUploadedId = null;
 let circleMents = [];
 
 async function loadCircleMents() {
-    if (circleMents.length > 0) return; // 이미 로드됨
+    if (circleMents.length > 0) return;
     try {
         const res = await fetch('ment.json');
         if (!res.ok) throw new Error('ment.json fetch 실패');
@@ -24,7 +24,7 @@ async function loadCircleMents() {
 
 function initCircleCanvas() {
     if (!canvas) return;
-    loadCircleMents(); // 미리 fetch
+    loadCircleMents();
     canvas.addEventListener('mousedown', startDrawing);
     canvas.addEventListener('touchstart', (e) => { e.preventDefault(); startDrawing(e.touches[0]); });
     canvas.addEventListener('mousemove', draw);
@@ -41,7 +41,7 @@ window.addEventListener('resize', () => {
 function resizeCanvas() {
     if (!canvas) return;
     const containerWidth = document.getElementById('game-area').clientWidth;
-    canvas.width = Math.min(containerWidth, 500); 
+    canvas.width = Math.min(containerWidth, 500);
     canvas.height = canvas.width * 0.8;
     clearCanvas();
 }
@@ -49,9 +49,7 @@ function resizeCanvas() {
 function clearCanvas() { if (ctx) ctx.clearRect(0, 0, canvas.width, canvas.height); }
 
 function startDrawing(e) {
-    if (!currentUsername) return;
     isDrawing = true; points = []; clearCanvas();
-    // ✨ 최초 1회(점수가 없을 때)만 0%로 초기화, 이후엔 이전 점수와 순위 유지
     const scoreDisplay = document.getElementById('score-display');
     if (scoreDisplay.innerText === '0%' || scoreDisplay.innerText === '') {
         scoreDisplay.innerText = "0%";
@@ -61,7 +59,7 @@ function startDrawing(e) {
     const rect = canvas.getBoundingClientRect();
     const x = e.clientX - rect.left; const y = e.clientY - rect.top;
     points.push({ x, y });
-    
+
     ctx.beginPath(); ctx.moveTo(x, y); ctx.lineWidth = 5; ctx.lineCap = 'round'; ctx.lineJoin = 'round'; ctx.strokeStyle = 'blue';
 }
 
@@ -82,7 +80,7 @@ function stopDrawing() {
 }
 
 async function calculateCircleScore() {
-    await loadCircleMents(); // ment.json 보장
+    await loadCircleMents();
 
     const scoreDisplay = document.getElementById('score-display');
     const messageDisplay = document.getElementById('message');
@@ -109,14 +107,14 @@ async function calculateCircleScore() {
     let roughnessSum = 0;
     for (let i = 1; i < distances.length; i++) { roughnessSum += Math.abs(distances[i] - distances[i - 1]); }
     const roughnessRatio = roughnessSum / (avgRadius * points.length);
-    const smoothnessPenalty = roughnessRatio * 250; 
+    const smoothnessPenalty = roughnessRatio * 250;
 
-    const gap = Math.sqrt(Math.pow(points[0].x - points[points.length-1].x, 2) + Math.pow(points[0].y - points[points.length-1].y, 2));
-    
+    const gap = Math.sqrt(Math.pow(points[0].x - points[points.length - 1].x, 2) + Math.pow(points[0].y - points[points.length - 1].y, 2));
+
     let shapeScore = (1 - (standardDeviation / avgRadius) * 2) * 100;
     const gapPenalty = (gap / avgRadius) * 25;
-    const maxErrorPenalty = (maxError / avgRadius) * 40; 
-    
+    const maxErrorPenalty = (maxError / avgRadius) * 40;
+
     let finalScore = Math.max(0, Math.min(100, shapeScore - gapPenalty - maxErrorPenalty - smoothnessPenalty));
     finalScore = Math.round(finalScore * 10) / 10;
 
@@ -124,23 +122,47 @@ async function calculateCircleScore() {
     const match = circleMents.find(m => finalScore <= m.max && finalScore >= m.min);
     messageDisplay.innerText = match ? match.text : "훌륭한 원입니다!";
 
-    // ✨ 업로드 후 순위를 score-display 옆에 표시
-    await uploadCircleScore(finalScore);
-
-    // ✨ 빨간 가이드라인 먼저, 그 위에 파란 선 리플레이
+    await handleCircleGameOver(finalScore);
     await replayDrawing(points, centerX, centerY, avgRadius);
+}
 
-    // ✨ 축하 페이지 이동 조건
-    if (finalScore >= CIRCLE_THRESHOLD) {
-        sessionStorage.setItem('circle_celebration_verified', 'true');
-        sessionStorage.setItem('circle_celebration_score', finalScore.toString());
-        setTimeout(() => {
-            window.location.href = `suddenwinner.html?score=${finalScore}`;
-        }, 800); 
+// ==========================================
+// 게임 오버 처리 — 닉네임 분기 포함
+// ==========================================
+async function handleCircleGameOver(score) {
+    if (!initSupabase()) return;
+
+    // 1. 순위 계산
+    const { data: allData } = await window._supabase
+        .from('circle_rankings')
+        .select('score')
+        .order('score', { ascending: false });
+
+    const rank = allData ? allData.filter(r => r.score > score).length + 1 : 999;
+
+    // 2. 닉네임 분기
+    const doSave = async (nickname) => {
+        await uploadCircleScore(score, nickname);
+
+        // 3. suddenwinner 조건 — 저장 완료 후 이동
+        if (score >= CIRCLE_THRESHOLD) {
+            sessionStorage.setItem('circle_celebration_verified', 'true');
+            sessionStorage.setItem('circle_celebration_score', score.toString());
+            setTimeout(() => {
+                window.location.href = `suddenwinner.html?score=${score}`;
+            }, 800);
+        }
+    };
+
+    if (currentUsername) {
+        await doSave(currentUsername);
+    } else if (rank <= 10) {
+        showNicknameModal(score, rank, doSave);
+    } else {
+        await doSave('outranker');
     }
 }
 
-// ✨ score-display 옆에 현재 순위를 표시하는 함수
 async function showMyRankNextToScore() {
     if (!initSupabase() || !lastUploadedId) return;
     try {
@@ -156,16 +178,12 @@ async function showMyRankNextToScore() {
 
         const scoreDisplay = document.getElementById('score-display');
         if (scoreDisplay) {
-            // 기존 순위 span이 있으면 제거
             const existing = document.getElementById('my-rank-badge');
             if (existing) existing.remove();
 
             const rankSpan = document.createElement('span');
             rankSpan.id = 'my-rank-badge';
-            rankSpan.style.fontSize = '1.5rem';
-            rankSpan.style.fontWeight = 'bold';
-            rankSpan.style.color = '#b45309';
-            rankSpan.style.marginLeft = '16px';
+            rankSpan.style.cssText = 'font-size:1.5rem;font-weight:bold;color:#b45309;margin-left:16px;';
             rankSpan.innerText = `오늘 ${myRank + 1}위`;
             scoreDisplay.appendChild(rankSpan);
         }
@@ -174,22 +192,16 @@ async function showMyRankNextToScore() {
     }
 }
 
-// ✨ 게이머가 그렸던 파란 선을 처음부터 다시 재생하는 애니메이션
-// 👉 총 재생 시간은 REPLAY_DURATION_MS(밀리초)로 조절할 수 있습니다.
 function replayDrawing(pts, cx, cy, radius) {
-    // 👇 리플레이 속도 조절: 숫자가 클수록 천천히 그려집니다 (단위: ms)
     const REPLAY_DURATION_MS = 2000;
-
     return new Promise(resolve => {
         clearCanvas();
         const totalPoints = pts.length;
         const interval = REPLAY_DURATION_MS / totalPoints;
         let i = 0;
 
-        // 빨간 가이드라인 먼저 표시
         drawPerfectGuideCircle(cx, cy, radius);
 
-        // 빨간 가이드라인이 ctx 스타일을 바꿔버리므로 파란색으로 명시적으로 재설정
         ctx.beginPath();
         ctx.moveTo(pts[0].x, pts[0].y);
         ctx.lineWidth = 5;
@@ -198,11 +210,7 @@ function replayDrawing(pts, cx, cy, radius) {
         ctx.strokeStyle = 'blue';
 
         const timer = setInterval(() => {
-            if (i >= totalPoints) {
-                clearInterval(timer);
-                resolve();
-                return;
-            }
+            if (i >= totalPoints) { clearInterval(timer); resolve(); return; }
             ctx.lineTo(pts[i].x, pts[i].y);
             ctx.stroke();
             i++;
@@ -220,37 +228,33 @@ function drawPerfectGuideCircle(cx, cy, radius) {
     ctx.beginPath();
     ctx.arc(cx, cy, radius, 0, Math.PI * 2);
     ctx.lineWidth = 3;
-    ctx.strokeStyle = 'rgba(255, 77, 77, 0.8)'; 
-    ctx.setLineDash([6, 6]); 
+    ctx.strokeStyle = 'rgba(255, 77, 77, 0.8)';
+    ctx.setLineDash([6, 6]);
     ctx.stroke();
-    ctx.setLineDash([]); 
+    ctx.setLineDash([]);
 }
 
-async function uploadCircleScore(score) {
+async function uploadCircleScore(score, nickname) {
     if (!initSupabase() || score < 0 || score > 100) return;
     try {
-        // 🔒 [보안 크래시 해결] Token이든 Hash든 어떤 이름으로 선언되어 있든 알아서 찾아 매핑하는 스마트 체인
         let verificationHash = "";
         if (typeof generateVerificationToken === 'function') {
-            verificationHash = generateVerificationToken(currentUsername, score);
+            verificationHash = generateVerificationToken(nickname, score);
         } else if (typeof generateVerificationHash === 'function') {
-            verificationHash = generateVerificationHash(currentUsername, score);
-        } else {
-            console.warn("⚠️ 보안 검증 함수가 누락되었습니다. 일반 인서트를 시도합니다.");
+            verificationHash = generateVerificationHash(nickname, score);
         }
-        
-        const { data, error } = await window._supabase.from('circle_rankings').insert([{ 
-            username: currentUsername, score: score, verification_token: verificationHash 
+
+        const { data, error } = await window._supabase.from('circle_rankings').insert([{
+            username: nickname, score: score, verification_token: verificationHash
         }]).select();
-        
+
         if (error) throw error;
         if (data && data.length > 0) { lastUploadedId = data[0].id; }
         if (typeof lockCircleSubmitTime === 'function') lockCircleSubmitTime();
         fetchCircleRankings();
-        // ✨ 업로드 완료 후 score-display 옆에 순위 표시
         showMyRankNextToScore();
-    } catch (err) { 
-        console.error("원 그리기 업로드 실패:", err); 
+    } catch (err) {
+        console.error("원 그리기 업로드 실패:", err);
     }
 }
 
@@ -263,41 +267,35 @@ async function fetchCircleRankings() {
             .order('score', { ascending: false })
             .order('created_at', { ascending: false })
             .limit(10);
-            
+
         if (error) throw error;
         const circleRankingList = document.getElementById('circleRankingList');
         if (!circleRankingList) return;
-        
+
         circleRankingList.innerHTML = '';
 
         if (data.length === 0) {
-            const noDataLi = document.createElement('li');
-            noDataLi.innerText = '기록이 없습니다.';
-            circleRankingList.appendChild(noDataLi);
+            circleRankingList.innerHTML = '<li>기록이 없습니다.</li>';
             return;
         }
-        
+
         data.forEach((player, index) => {
             const dateString = formatBlockDate(player.created_at);
             const li = document.createElement('li');
-            
+
             if (lastUploadedId && player.id === lastUploadedId) {
-                li.style.backgroundColor = '#e6f4ea'; 
-                li.style.color = '#137333';
-                li.style.fontWeight = 'bold';
-                li.style.borderRadius = '5px';
-                li.style.padding = '4px 8px';
-                li.style.transition = 'all 0.5s ease';
-                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#137333; float:right;">(${dateString})</span>`;
+                li.style.cssText = 'background-color:#e6f4ea;color:#137333;font-weight:bold;border-radius:5px;padding:4px 8px;transition:all 0.5s ease;';
+                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
             } else {
-                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem; color:#888; float:right;">(${dateString})</span>`;
+                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem;color:#888;float:right;">(${dateString})</span>`;
             }
             circleRankingList.appendChild(li);
         });
-    } catch (err) { 
-        console.error("원 랭킹 로드 실패:", err); 
+    } catch (err) {
+        console.error("원 랭킹 로드 실패:", err);
     }
 }
+
 function loadCircleRankings() {
     fetchCircleRankings();
 }
@@ -305,15 +303,16 @@ function loadCircleRankings() {
 window.addEventListener('load', () => {
     initCircleCanvas();
 });
+
 // ── 공통 날짜 포맷: yy/mm/dd hh:mm:ss (KST) ──
 function formatBlockDate(isoString) {
     const d = new Date(isoString);
     const kst = new Date(d.getTime() + 9 * 60 * 60 * 1000);
-    const yy  = String(kst.getUTCFullYear()).slice(2);
-    const mo  = String(kst.getUTCMonth() + 1).padStart(2, '0');
-    const dd  = String(kst.getUTCDate()).padStart(2, '0');
-    const hh  = String(kst.getUTCHours()).padStart(2, '0');
-    const mm  = String(kst.getUTCMinutes()).padStart(2, '0');
-    const ss  = String(kst.getUTCSeconds()).padStart(2, '0');
+    const yy = String(kst.getUTCFullYear()).slice(2);
+    const mo = String(kst.getUTCMonth() + 1).padStart(2, '0');
+    const dd = String(kst.getUTCDate()).padStart(2, '0');
+    const hh = String(kst.getUTCHours()).padStart(2, '0');
+    const mm = String(kst.getUTCMinutes()).padStart(2, '0');
+    const ss = String(kst.getUTCSeconds()).padStart(2, '0');
     return `${yy}/${mo}/${dd} ${hh}:${mm}:${ss}`;
 }
