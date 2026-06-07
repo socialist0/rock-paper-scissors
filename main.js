@@ -161,7 +161,17 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    // 💡 깔끔하게 정리된 이벤트 리스너 구역
+    // 💡 맥북 Safari 한글 입력 확정 대응 리스너 구역
+
+    // 등록하기 버튼을 누르는 순간(mousedown) 강제로 포커스를 해제하여 한글을 확정시킵니다.
+    const confirmBtn = document.getElementById('nickname-modal-confirm');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('mousedown', () => {
+            input.blur();
+        });
+    }
+
+    // 기존 submit 이벤트로 안전하게 데이터를 제출합니다.
     nicknameForm.addEventListener('submit', (e) => {
         e.preventDefault(); // 폼 제출 시 페이지가 새로고침되는 기본 동작 방지
         handleConfirm();    // 저장 함수 실행
