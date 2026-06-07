@@ -125,24 +125,28 @@ function showNicknameModal(score, rank, onConfirm) {
     }
 
     function handleConfirm() {
-        input.blur(); // 한글 조합 강제 완료
-        const name = input.value.trim();
-        if (!name) {
-            input.classList.add('shake');
-            setTimeout(() => input.classList.remove('shake'), 400);
-            input.placeholder = '닉네임을 입력해 주세요!';
-            return;
-        }
-        if (!validateUsername(name)) {
-            input.classList.add('shake');
-            setTimeout(() => input.classList.remove('shake'), 400);
-            input.value = '';
-            input.placeholder = '한글 4자 또는 영어 8자 이내';
-            return;
-        }
-        currentUsername = name;
-        overlay.remove();
-        onConfirm(name);
+        input.blur();
+        setTimeout(() => {
+            const name = input.value.trim();
+            if (!name) {
+                input.focus();
+                input.classList.add('shake');
+                setTimeout(() => input.classList.remove('shake'), 400);
+                input.placeholder = '닉네임을 입력해 주세요!';
+                return;
+            }
+            if (!validateUsername(name)) {
+                input.focus();
+                input.classList.add('shake');
+                setTimeout(() => input.classList.remove('shake'), 400);
+                input.value = '';
+                input.placeholder = '한글 4자 또는 영어 8자 이내';
+                return;
+            }
+            currentUsername = name;
+            overlay.remove();
+            onConfirm(name);
+        }, 100);
     }
 
     function handleSkip() {
