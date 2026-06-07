@@ -125,28 +125,31 @@ function showNicknameModal(score, rank, onConfirm) {
     }
 
     function handleConfirm() {
+        // 1. 지연 시간(setTimeout) 없이 실행 즉시 값을 안전하게 가져옴
+        const name = input.value.trim();
+
+        // 2. 유효성 검사를 즉시 진행
+        if (!name) {
+            input.focus();
+            input.classList.add('shake');
+            setTimeout(() => input.classList.remove('shake'), 400);
+            input.placeholder = '닉네임을 입력해 주세요!';
+            return;
+        }
+        if (!validateUsername(name)) {
+            input.focus();
+            input.classList.add('shake');
+            setTimeout(() => input.classList.remove('shake'), 400);
+            input.value = '';
+            input.placeholder = '한글 4자 또는 영어 8자 이내';
+            return;
+        }
+
+        // 3. 모든 검증을 통과한 후 최종적으로 포커스 해제 및 데이터 저장
         input.blur();
-        setTimeout(() => {
-            const name = input.value.trim();
-            if (!name) {
-                input.focus();
-                input.classList.add('shake');
-                setTimeout(() => input.classList.remove('shake'), 400);
-                input.placeholder = '닉네임을 입력해 주세요!';
-                return;
-            }
-            if (!validateUsername(name)) {
-                input.focus();
-                input.classList.add('shake');
-                setTimeout(() => input.classList.remove('shake'), 400);
-                input.value = '';
-                input.placeholder = '한글 4자 또는 영어 8자 이내';
-                return;
-            }
-            currentUsername = name;
-            overlay.remove();
-            onConfirm(name);
-        }, 100);
+        currentUsername = name;
+        overlay.remove();
+        onConfirm(name);
     }
 
     function handleSkip() {
@@ -154,8 +157,15 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    confirmBtn.addEventListener('mousedown', handleConfirm);
+    // 1. mousedown 시 포커스가 강제로 풀려 한글 입력(IME)이 꼬이는 현상 방지
+    confirmBtn.addEventListener('mousedown', (e) => {
+        e.preventDefault();
+    });
+
+    // 2. 이벤트를 mousedown에서 click으로 변경하여 안정적으로 실행
+    confirmBtn.addEventListener('click', handleConfirm);
     skip.addEventListener('click', handleSkip);
+
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
             e.preventDefault();
