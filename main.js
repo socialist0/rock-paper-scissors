@@ -102,8 +102,7 @@ function showNicknameModal(score, rank, onConfirm) {
         <p class="nickname-modal-rule">한글 4자 또는 영어 8자 이내<br>(공백·특수문자·숫자 불가)</p>
         
         <form id="nickname-form">
-            <input type="text" id="nickname-modal-input" maxlength="12"
-                placeholder="닉네임 입력" autocomplete="off" />
+<input type="text" id="nickname-modal-input" name="nickname-modal-input" maxlength="12" placeholder="닉네임 입력" autocomplete="off" />
             <div class="nickname-modal-buttons">
                 <button type="submit" id="nickname-modal-confirm">등록하기</button>
                 <button type="button" id="nickname-modal-skip">건너뛰기</button>
@@ -129,7 +128,10 @@ function showNicknameModal(score, rank, onConfirm) {
     }
 
     function handleConfirm() {
-        const name = input.value.trim();
+        // 💡 FormData를 통해 사파리 내부 입력 버퍼에 남아있는 값을 강제로 가져옵니다.
+        const formData = new FormData(nicknameForm);
+        const name = (formData.get('nickname-modal-input') || input.value || '').trim();
+
         if (!name) {
             input.focus();
             input.classList.add('shake');
@@ -157,12 +159,15 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    // 💡 변경 포인트 2: 개별 버튼의 pointerdown/keydown 이벤트를 전부 제거하고,
-    // Form 자체의 submit 이벤트 하나로 마우스 클릭과 키보드 엔터를 동시에 바인딩합니다.
-    // 사파리 브라우저가 submit 트리거 시점에 자동으로 조합 중인 한글을 안전하게 확정(commit)짓도록 만듭니다.
+    // 💡 최종 수정 포인트: Form의 submit 이벤트를 수신하되, 
+    // 사파리가 한글 조합 확정 처리를 완전히 마칠 수 있도록 실행 타이밍을 미이크로초 단위로 분리합니다.
     nicknameForm.addEventListener('submit', (e) => {
         e.preventDefault(); // 페이지 새로고침 방지
-        handleConfirm();    // 마우스 클릭 및 엔터키 입력 시 즉시 실행
+
+        // 0.01초의 지연을 주어 사파리의 이벤트 누락 버그를 우회합니다.
+        setTimeout(() => {
+            handleConfirm();
+        }, 10);
     });
 
     skip.addEventListener('click', handleSkip);
