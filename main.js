@@ -128,10 +128,10 @@ function showNicknameModal(score, rank, onConfirm) {
         return false;
     }
 
+    let typedName = "";
     function handleConfirm() {
         // 1. 지연 시간(setTimeout) 없이 실행 즉시 값을 안전하게 가져옴
-        const name = input.value.trim();
-
+        const name = typedName.trim();
         // 2. 유효성 검사를 즉시 진행
         if (!name) {
             input.focus();
@@ -171,10 +171,40 @@ function showNicknameModal(score, rank, onConfirm) {
         });
     }
 
-    // 기존 submit 이벤트로 안전하게 데이터를 제출합니다.
+    // 💡 1. 키보드를 누를 때마다 타이핑 중인 글자를 실시간으로 typedName 변수에 강제 동기화
+    input.addEventListener('input', (e) => {
+        typedName = e.target.value;
+    });
+    input.addEventListener('compositionupdate', (e) => {
+        if (e.data) {
+            const baseValue = input.value.slice(0, input.value.length - e.data.length);
+            typedName = baseValue + e.data;
+        }
+    });
+    input.addEventListener('compositionend', (e) => {
+        typedName = input.value;
+    });
+
+    // 💡 2. submit 대신 가장 반응이 빠른 mousedown 시점에 저장을 즉시 실행
+    const confirmBtn = document.getElementById('nickname-modal-confirm');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('mousedown', (e) => {
+            e.preventDefault(); // 포커스가 풀리면서 이벤트가 무시되는 현상 방지
+            handleConfirm();    // 이미 typedName에 글자가 실시간 저장되어 있으므로 즉시 성공
+        });
+    }
+
+    // 엔터키 입력 시 처리
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            handleConfirm();
+        }
+    });
+
+    // 폼 자체의 기본 submit 동작(새로고침)은 막아둡니다.
     nicknameForm.addEventListener('submit', (e) => {
-        e.preventDefault(); // 폼 제출 시 페이지가 새로고침되는 기본 동작 방지
-        handleConfirm();    // 저장 함수 실행
+        e.preventDefault();
     });
 
     skip.addEventListener('click', handleSkip);
