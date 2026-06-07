@@ -145,9 +145,8 @@ function showNicknameModal(score, rank, onConfirm) {
     }
 
     function handleSkip() {
-        currentUsername = 'outranker';
         overlay.remove();
-        onConfirm('outranker');
+        onConfirm('미입력');
     }
 
     confirm.addEventListener('click', handleConfirm);

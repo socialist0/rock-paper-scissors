@@ -35,7 +35,7 @@ async function playGame(userChoice) {
         } else {
             lastRpsUploadedId = null;
         }
-        result = `졌습니다... 😭\n최종 기록: ${rpsStreak}연승\n다시 도전해 보세요!`;
+        result = `졌습니다... 😭\최종 기록: ${rpsStreak}연승\n다시 도전해 보세요!`;
         rpsStreak = 0;
         document.getElementById('user-score').innerText = rpsStreak;
     }
@@ -79,8 +79,8 @@ async function handleRpsGameOver(score) {
         // 10위 안 + 닉네임 없음 → 모달
         showNicknameModal(score, rank, doSave);
     } else {
-        // 10위 밖 + 닉네임 없음 → outranker로 저장
-        await doSave('outranker');
+        // 10위 밖 + 닉네임 없음 → 미입력으로 저장
+        await doSave('미입력');
     }
 }
 

@@ -332,7 +332,7 @@ async function handleBlockGameOver(score) {
     } else if (rank <= 10) {
         showNicknameModal(score, rank, doSave);
     } else {
-        await doSave('outranker');
+        await doSave('미입력');
     }
 }
 
