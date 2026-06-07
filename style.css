@@ -415,7 +415,7 @@ body.nickname-page {
 }
 
 /* ==========================================
-   🌍 7. 공통 명예의 전당 (랭킹 보드) 스타일
+   🔑 7. 공통 명예의 전당 (랭킹 보드) 스타일
    ========================================== */
 hr {
     width: 100%;
@@ -544,7 +544,7 @@ hr {
 }
 
 /* ==========================================
-   닉네임 모달 — style.css에 추가하세요
+   닉네임 모달 스타일
    ========================================== */
 
 #nickname-modal-overlay {
@@ -675,6 +675,7 @@ hr {
     margin-top: 6px;
 }
 
+/* 💡 macOS Safari 반응 우선순위 확보 방어선 구축 */
 #nickname-modal-confirm {
     flex: 2;
     padding: 11px 0;
@@ -685,7 +686,14 @@ hr {
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition: background 0.15s, transform 0.1s;
+}
+
+/* 💡 [핵심 치트키] 버튼 내부의 자식 텍스트 노드가 마우스 이벤트를 낚아채서 사파리를 먹통으로 만드는 버그 원천 차단 */
+#nickname-modal-confirm * {
+    pointer-events: none;
 }
 
 #nickname-modal-confirm:hover {
@@ -706,7 +714,13 @@ hr {
     border: none;
     border-radius: 8px;
     cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
     transition: background 0.15s, transform 0.1s;
+}
+
+#nickname-modal-skip * {
+    pointer-events: none;
 }
 
 #nickname-modal-skip:hover {

@@ -93,7 +93,6 @@ function showNicknameModal(score, rank, onConfirm) {
 
     const overlay = document.createElement('div');
     overlay.id = 'nickname-modal-overlay';
-    // 💡 변경 포인트 1: 등록하기 버튼의 type을 'submit'으로 변경하여 표준 폼 제출 구조 확립
     overlay.innerHTML = `
     <div id="nickname-modal">
         <p class="nickname-modal-congrats">🏅 ${rank}위 달성!</p>
@@ -102,7 +101,7 @@ function showNicknameModal(score, rank, onConfirm) {
         <p class="nickname-modal-rule">한글 4자 또는 영어 8자 이내<br>(공백·특수문자·숫자 불가)</p>
         
         <form id="nickname-form">
-<input type="text" id="nickname-modal-input" name="nickname-modal-input" maxlength="12" placeholder="닉네임 입력" autocomplete="off" />
+            <input type="text" id="nickname-modal-input" name="nickname-modal-input" maxlength="12" placeholder="닉네임 입력" autocomplete="off" />
             <div class="nickname-modal-buttons">
                 <button type="submit" id="nickname-modal-confirm">등록하기</button>
                 <button type="button" id="nickname-modal-skip">건너뛰기</button>
@@ -116,13 +115,13 @@ function showNicknameModal(score, rank, onConfirm) {
     const nicknameForm = document.getElementById('nickname-form');
     const skip = document.getElementById('nickname-modal-skip');
 
-    // 💡 [해결책 2 적용] 실시간 입력 값을 저장할 임시 변수 선언
+    // [해결책 2] 실시간 입력 값을 저장할 임시 변수 선언
     let temporaryName = "";
 
-    // 포커스
+    // 포커스 강제 정렬
     setTimeout(() => input.focus(), 100);
 
-    // 💡 [해결책 2 적용] 자음/모음 조합 중이라도 타이핑할 때마다 값을 실시간 동기화
+    // 자음/모음 조합 중이라도 타이핑할 때마다 값을 실시간 동기화
     input.addEventListener('input', (e) => {
         temporaryName = e.target.value;
     });
@@ -136,7 +135,7 @@ function showNicknameModal(score, rank, onConfirm) {
     }
 
     function handleConfirm() {
-        // 💡 [해결책 2 적용] 사파리 버퍼 오류를 우회하여 실시간 변수에 누적된 값을 직접 사용
+        // 사파리 버퍼 오류를 우회하여 실시간 변수에 누적된 값을 직접 사용
         const name = temporaryName.trim();
 
         if (!name) {
@@ -151,8 +150,7 @@ function showNicknameModal(score, rank, onConfirm) {
             input.classList.add('shake');
             setTimeout(() => input.classList.remove('shake'), 400);
 
-            // 💡 [필수 보완] input 창을 비울 때 실시간 누적 변수도 함께 비워주어야 
-            // 사파리가 다음 입력 시 이전 조합 버퍼와 매칭을 시도하다 꼬이는 버그를 차단합니다.
+            // input 창을 비울 때 실시간 누적 변수도 함께 비워 동기화 오류 예방
             input.value = '';
             temporaryName = '';
 
@@ -171,20 +169,7 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    // 💡 [해결책 1 적용] 마우스나 터치포인트를 누르는 즉시 사파리의 한글 조합을 강제 종료 후 저장
-    const confirmBtn = document.getElementById('nickname-modal-confirm');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); // 사파리가 이벤트를 가로채지 못하도록 차단
-            input.blur();       // 포커스를 강제로 해제하여 한글 확정(CompositionEnd) 유도
-
-            setTimeout(() => {
-                handleConfirm();
-            }, 30); // 사파리가 정신 차릴 시간 0.03초 부여
-        });
-    }
-
-    // 💡 엔터키 입력을 위한 submit 리스너에도 동일한 메커니즘 적용
+    // CSS pointer-events 구동을 전적으로 보조하는 표준 Form Submit 제어 장치
     nicknameForm.addEventListener('submit', (e) => {
         e.preventDefault();
         input.blur();
