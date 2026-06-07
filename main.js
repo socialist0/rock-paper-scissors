@@ -104,7 +104,7 @@ function showNicknameModal(score, rank, onConfirm) {
             <input type="text" id="nickname-modal-input" maxlength="12"
                 placeholder="닉네임 입력" autocomplete="off" />
             <div class="nickname-modal-buttons">
-                <button type="submit" id="nickname-modal-confirm">등록하기</button>
+                <button type="button" id="nickname-modal-confirm">등록하기</button>
                 <button type="button" id="nickname-modal-skip">건너뛰기</button>
             </div>
         </form>
@@ -113,8 +113,8 @@ function showNicknameModal(score, rank, onConfirm) {
     document.body.appendChild(overlay);
 
     const input = document.getElementById('nickname-modal-input');
-    // 💡 변경: confirmBtn 대신 form 요소를 선택합니다.
     const nicknameForm = document.getElementById('nickname-form');
+    const confirmBtn = document.getElementById('nickname-modal-confirm');
     const skip = document.getElementById('nickname-modal-skip');
 
     // 포커스
@@ -128,11 +128,8 @@ function showNicknameModal(score, rank, onConfirm) {
         return false;
     }
 
-    let typedName = "";
     function handleConfirm() {
-        // 1. 지연 시간(setTimeout) 없이 실행 즉시 값을 안전하게 가져옴
-        const name = typedName.trim();
-        // 2. 유효성 검사를 즉시 진행
+        const name = input.value.trim();
         if (!name) {
             input.focus();
             input.classList.add('shake');
@@ -149,7 +146,6 @@ function showNicknameModal(score, rank, onConfirm) {
             return;
         }
 
-        // 3. 모든 검증을 통과한 후 최종적으로 포커스 해제 및 데이터 저장
         input.blur();
         currentUsername = name;
         overlay.remove();
@@ -161,36 +157,11 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    // 💡 맥북 Safari 한글 입력 확정 대응 리스너 구역
-
-    // 등록하기 버튼을 누르는 순간(mousedown) 강제로 포커스를 해제하여 한글을 확정시킵니다.
-    const confirmBtn = document.getElementById('nickname-modal-confirm');
+    // 💡 맥북 Safari 한글 입력 흐름을 방해하지 않는 최적의 반응형 pointerdown 리스너 구역
     if (confirmBtn) {
-        confirmBtn.addEventListener('mousedown', () => {
-            input.blur();
-        });
-    }
-
-    // 💡 1. 키보드를 누를 때마다 타이핑 중인 글자를 실시간으로 typedName 변수에 강제 동기화
-    input.addEventListener('input', (e) => {
-        typedName = e.target.value;
-    });
-    input.addEventListener('compositionupdate', (e) => {
-        if (e.data) {
-            const baseValue = input.value.slice(0, input.value.length - e.data.length);
-            typedName = baseValue + e.data;
-        }
-    });
-    input.addEventListener('compositionend', (e) => {
-        typedName = input.value;
-    });
-
-    // 💡 2. submit 대신 가장 반응이 빠른 mousedown 시점에 저장을 즉시 실행
-    const confirmBtn = document.getElementById('nickname-modal-confirm');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('mousedown', (e) => {
-            e.preventDefault(); // 포커스가 풀리면서 이벤트가 무시되는 현상 방지
-            handleConfirm();    // 이미 typedName에 글자가 실시간 저장되어 있으므로 즉시 성공
+        confirmBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); // 클릭 시점에 포커스가 유실되어 이벤트가 증발하는 Safari 버그 원천 차단
+            handleConfirm();    // 첫 번째 클릭 조작 즉시 저장 처리 수행
         });
     }
 
@@ -202,7 +173,7 @@ function showNicknameModal(score, rank, onConfirm) {
         }
     });
 
-    // 폼 자체의 기본 submit 동작(새로고침)은 막아둡니다.
+    // 폼 자체의 기본 submit 동작(페이지 새로고침) 방지
     nicknameForm.addEventListener('submit', (e) => {
         e.preventDefault();
     });
