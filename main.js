@@ -93,6 +93,7 @@ function showNicknameModal(score, rank, onConfirm) {
 
     const overlay = document.createElement('div');
     overlay.id = 'nickname-modal-overlay';
+    // 💡 변경 포인트 1: 등록하기 버튼의 type을 'submit'으로 변경하여 표준 폼 제출 구조 확립
     overlay.innerHTML = `
     <div id="nickname-modal">
         <p class="nickname-modal-congrats">🏅 ${rank}위 달성!</p>
@@ -104,7 +105,7 @@ function showNicknameModal(score, rank, onConfirm) {
             <input type="text" id="nickname-modal-input" maxlength="12"
                 placeholder="닉네임 입력" autocomplete="off" />
             <div class="nickname-modal-buttons">
-                <button type="button" id="nickname-modal-confirm">등록하기</button>
+                <button type="submit" id="nickname-modal-confirm">등록하기</button>
                 <button type="button" id="nickname-modal-skip">건너뛰기</button>
             </div>
         </form>
@@ -114,7 +115,6 @@ function showNicknameModal(score, rank, onConfirm) {
 
     const input = document.getElementById('nickname-modal-input');
     const nicknameForm = document.getElementById('nickname-form');
-    const confirmBtn = document.getElementById('nickname-modal-confirm');
     const skip = document.getElementById('nickname-modal-skip');
 
     // 포커스
@@ -157,25 +157,12 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    // 💡 맥북 Safari 한글 입력 흐름을 방해하지 않는 최적의 반응형 pointerdown 리스너 구역
-    if (confirmBtn) {
-        confirmBtn.addEventListener('pointerdown', (e) => {
-            e.preventDefault(); // 클릭 시점에 포커스가 유실되어 이벤트가 증발하는 Safari 버그 원천 차단
-            handleConfirm();    // 첫 번째 클릭 조작 즉시 저장 처리 수행
-        });
-    }
-
-    // 엔터키 입력 시 처리
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleConfirm();
-        }
-    });
-
-    // 폼 자체의 기본 submit 동작(페이지 새로고침) 방지
+    // 💡 변경 포인트 2: 개별 버튼의 pointerdown/keydown 이벤트를 전부 제거하고,
+    // Form 자체의 submit 이벤트 하나로 마우스 클릭과 키보드 엔터를 동시에 바인딩합니다.
+    // 사파리 브라우저가 submit 트리거 시점에 자동으로 조합 중인 한글을 안전하게 확정(commit)짓도록 만듭니다.
     nicknameForm.addEventListener('submit', (e) => {
-        e.preventDefault();
+        e.preventDefault(); // 페이지 새로고침 방지
+        handleConfirm();    // 마우스 클릭 및 엔터키 입력 시 즉시 실행
     });
 
     skip.addEventListener('click', handleSkip);
