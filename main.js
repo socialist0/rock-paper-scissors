@@ -125,6 +125,7 @@ function showNicknameModal(score, rank, onConfirm) {
     }
 
     function handleConfirm() {
+        input.blur(); // 한글 조합 강제 완료
         const name = input.value.trim();
         if (!name) {
             input.classList.add('shake');
