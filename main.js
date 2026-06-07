@@ -94,23 +94,27 @@ function showNicknameModal(score, rank, onConfirm) {
     const overlay = document.createElement('div');
     overlay.id = 'nickname-modal-overlay';
     overlay.innerHTML = `
-        <div id="nickname-modal">
-            <p class="nickname-modal-congrats">🏅 ${rank}위 달성!</p>
-            <p class="nickname-modal-score">점수: <strong>${score}</strong></p>
-            <p class="nickname-modal-desc">명예의 전당에 등록할 닉네임을 입력하세요</p>
-            <p class="nickname-modal-rule">한글 4자 또는 영어 8자 이내<br>(공백·특수문자·숫자 불가)</p>
+    <div id="nickname-modal">
+        <p class="nickname-modal-congrats">🏅 ${rank}위 달성!</p>
+        <p class="nickname-modal-score">점수: <strong>${score}</strong></p>
+        <p class="nickname-modal-desc">명예의 전당에 등록할 닉네임을 입력하세요</p>
+        <p class="nickname-modal-rule">한글 4자 또는 영어 8자 이내<br>(공백·특수문자·숫자 불가)</p>
+        
+        <form id="nickname-form">
             <input type="text" id="nickname-modal-input" maxlength="12"
                 placeholder="닉네임 입력" autocomplete="off" />
             <div class="nickname-modal-buttons">
-                <button id="nickname-modal-confirm">등록하기</button>
-                <button id="nickname-modal-skip">건너뛰기</button>
+                <button type="submit" id="nickname-modal-confirm">등록하기</button>
+                <button type="button" id="nickname-modal-skip">건너뛰기</button>
             </div>
-        </div>
-    `;
+        </form>
+    </div>
+`;
     document.body.appendChild(overlay);
 
     const input = document.getElementById('nickname-modal-input');
-    const confirmBtn = document.getElementById('nickname-modal-confirm');
+    // 💡 변경: confirmBtn 대신 form 요소를 선택합니다.
+    const nicknameForm = document.getElementById('nickname-form');
     const skip = document.getElementById('nickname-modal-skip');
 
     // 포커스
@@ -157,21 +161,13 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    // 1. mousedown 시 포커스가 강제로 풀려 한글 입력(IME)이 꼬이는 현상 방지
-    confirmBtn.addEventListener('mousedown', (e) => {
-        e.preventDefault();
+    // 💡 깔끔하게 정리된 이벤트 리스너 구역
+    nicknameForm.addEventListener('submit', (e) => {
+        e.preventDefault(); // 폼 제출 시 페이지가 새로고침되는 기본 동작 방지
+        handleConfirm();    // 저장 함수 실행
     });
 
-    // 2. 이벤트를 mousedown에서 click으로 변경하여 안정적으로 실행
-    confirmBtn.addEventListener('click', handleConfirm);
     skip.addEventListener('click', handleSkip);
-
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            handleConfirm();
-        }
-    });
 }
 
 // ==========================================
