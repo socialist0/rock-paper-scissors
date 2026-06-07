@@ -157,6 +157,7 @@ async function handleCircleGameOver(score) {
     if (currentUsername) {
         await doSave(currentUsername);
     } else if (rank <= 10) {
+        console.log('모달 호출'); // 추가
         showNicknameModal(score, rank, doSave);
     } else {
         await doSave('미입력');
