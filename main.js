@@ -116,8 +116,16 @@ function showNicknameModal(score, rank, onConfirm) {
     const nicknameForm = document.getElementById('nickname-form');
     const skip = document.getElementById('nickname-modal-skip');
 
+    // 💡 [해결책 2 적용] 실시간 입력 값을 저장할 임시 변수 선언
+    let temporaryName = "";
+
     // 포커스
     setTimeout(() => input.focus(), 100);
+
+    // 💡 [해결책 2 적용] 자음/모음 조합 중이라도 타이핑할 때마다 값을 실시간 동기화
+    input.addEventListener('input', (e) => {
+        temporaryName = e.target.value;
+    });
 
     function validateUsername(name) {
         const korRegex = /^[가-힣ㄱ-ㅎㅏ-ㅣ]+$/;
@@ -128,9 +136,8 @@ function showNicknameModal(score, rank, onConfirm) {
     }
 
     function handleConfirm() {
-        // 💡 FormData를 통해 사파리 내부 입력 버퍼에 남아있는 값을 강제로 가져옵니다.
-        const formData = new FormData(nicknameForm);
-        const name = (formData.get('nickname-modal-input') || input.value || '').trim();
+        // 💡 [해결책 2 적용] 사파리 버퍼 오류를 우회하여 실시간 변수에 누적된 값을 직접 사용
+        const name = temporaryName.trim();
 
         if (!name) {
             input.focus();
@@ -143,7 +150,12 @@ function showNicknameModal(score, rank, onConfirm) {
             input.focus();
             input.classList.add('shake');
             setTimeout(() => input.classList.remove('shake'), 400);
+
+            // 💡 [필수 보완] input 창을 비울 때 실시간 누적 변수도 함께 비워주어야 
+            // 사파리가 다음 입력 시 이전 조합 버퍼와 매칭을 시도하다 꼬이는 버그를 차단합니다.
             input.value = '';
+            temporaryName = '';
+
             input.placeholder = '한글 4자 또는 영어 8자 이내';
             return;
         }
@@ -159,15 +171,27 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    // 💡 최종 수정 포인트: Form의 submit 이벤트를 수신하되, 
-    // 사파리가 한글 조합 확정 처리를 완전히 마칠 수 있도록 실행 타이밍을 미이크로초 단위로 분리합니다.
-    nicknameForm.addEventListener('submit', (e) => {
-        e.preventDefault(); // 페이지 새로고침 방지
+    // 💡 [해결책 1 적용] 마우스나 터치포인트를 누르는 즉시 사파리의 한글 조합을 강제 종료 후 저장
+    const confirmBtn = document.getElementById('nickname-modal-confirm');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('pointerdown', (e) => {
+            e.preventDefault(); // 사파리가 이벤트를 가로채지 못하도록 차단
+            input.blur();       // 포커스를 강제로 해제하여 한글 확정(CompositionEnd) 유도
 
-        // 0.01초의 지연을 주어 사파리의 이벤트 누락 버그를 우회합니다.
+            setTimeout(() => {
+                handleConfirm();
+            }, 30); // 사파리가 정신 차릴 시간 0.03초 부여
+        });
+    }
+
+    // 💡 엔터키 입력을 위한 submit 리스너에도 동일한 메커니즘 적용
+    nicknameForm.addEventListener('submit', (e) => {
+        e.preventDefault();
+        input.blur();
+
         setTimeout(() => {
             handleConfirm();
-        }, 10);
+        }, 30);
     });
 
     skip.addEventListener('click', handleSkip);
