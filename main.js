@@ -128,6 +128,7 @@ function showNicknameModal(score, rank, onConfirm) {
         input.blur();
         setTimeout(() => {
             const name = input.value.trim();
+            console.log('name:', name, 'validate:', validateUsername(name)); // 추가
             if (!name) {
                 input.focus();
                 input.classList.add('shake');
