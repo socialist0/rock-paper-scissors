@@ -115,7 +115,7 @@ function showNicknameModal(score, rank, onConfirm) {
     const nicknameForm = document.getElementById('nickname-form');
     const skip = document.getElementById('nickname-modal-skip');
 
-    // [해결책 2] 실시간 입력 값을 저장할 임시 변수 선언
+    // 실시간 입력 값을 저장할 임시 변수 선언
     let temporaryName = "";
 
     // 포커스 강제 정렬
@@ -169,15 +169,31 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    // CSS pointer-events 구동을 전적으로 보조하는 표준 Form Submit 제어 장치
-    nicknameForm.addEventListener('submit', (e) => {
+    /**
+     * 💡 [macOS Safari 버그 격파 핵심 로직]
+     * 다른 빈 화면을 클릭해 포커스를 깨뜨린 현상을 그대로 구현합니다.
+     * 포커스를 먼저 해제하고 사파리가 한글 확정 정리를 완전히 끝마친 다음 사이클에 검증을 실행합니다.
+     */
+    function triggerSubmit(e) {
         e.preventDefault();
+
+        // 1. 강제로 포커스를 해제하여 사파리의 한글 조합 확정(CompositionEnd) 유도
         input.blur();
 
+        // 2. 사파리가 렌더링 스레드 처리를 완료하고 자바스크립트 명령을 안전하게 수용할 시간 확보
         setTimeout(() => {
             handleConfirm();
-        }, 30);
-    });
+        }, 60);
+    }
+
+    // 엔터키 및 폼 내부 서브밋 트리거 통합
+    nicknameForm.addEventListener('submit', triggerSubmit);
+
+    // 클릭 시 submit 처리를 가로채는 버그를 방지하기 위해 버튼 엘리먼트에 직접 바인딩
+    const confirmBtn = document.getElementById('nickname-modal-confirm');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', triggerSubmit);
+    }
 
     skip.addEventListener('click', handleSkip);
 }
