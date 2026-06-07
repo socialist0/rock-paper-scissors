@@ -110,7 +110,7 @@ function showNicknameModal(score, rank, onConfirm) {
     document.body.appendChild(overlay);
 
     const input = document.getElementById('nickname-modal-input');
-    const confirm = document.getElementById('nickname-modal-confirm');
+    const confirmBtn = document.getElementById('nickname-modal-confirm');
     const skip = document.getElementById('nickname-modal-skip');
 
     // 포커스
@@ -149,7 +149,7 @@ function showNicknameModal(score, rank, onConfirm) {
         onConfirm('미입력');
     }
 
-    confirm.addEventListener('click', handleConfirm);
+    confirmBtn.addEventListener('click', handleConfirm);
     skip.addEventListener('click', handleSkip);
     input.addEventListener('keydown', (e) => {
         if (e.key === 'Enter') {
