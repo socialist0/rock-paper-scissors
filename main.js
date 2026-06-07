@@ -119,8 +119,8 @@ function showNicknameModal(score, rank, onConfirm) {
     function validateUsername(name) {
         const korRegex = /^[가-힣ㄱ-ㅎㅏ-ㅣ]+$/;
         const engRegex = /^[a-zA-Z]+$/;
-        if (korRegex.test(name)) return name.length <= 4;
         if (engRegex.test(name)) return name.length <= 8;
+        if (korRegex.test(name)) return name.length <= 4;
         return false;
     }
 
