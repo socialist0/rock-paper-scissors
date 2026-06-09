@@ -100,7 +100,9 @@ async function uploadRpsScore(score, nickname) {
 
         if (!currentUsername && lastRpsUploadedId) {
             showInlineNicknameInput('rankingList', lastRpsUploadedId, async (nickname) => {
-                await window._supabase.from('rankings').update({ username: nickname }).eq('id', lastRpsUploadedId);
+                console.log('[update 시도] nickname:', nickname, 'id:', lastRpsUploadedId);
+                const { error } = await window._supabase.from('rankings').update({ username: nickname }).eq('id', lastRpsUploadedId);
+                console.log('[update 결과] error:', error);
                 fetchGlobalRankings();
                 if (score >= RPS_THRESHOLD) {
                     sessionStorage.setItem('rps_celebration_verified', 'true');
