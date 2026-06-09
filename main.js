@@ -103,22 +103,26 @@ function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
 
     let temporaryName = '';
 
-    nicknameSpan.outerHTML = `
-        <form id="inline-nickname-form" style="display:inline;">
-            <input type="text" id="inline-nickname-input"
-                maxlength="12" placeholder="닉네임 입력" autocomplete="off"
-                style="width:100px; padding:3px 7px; font-size:0.88rem;
-                       border:1.5px solid #34a853; border-radius:6px;
-                       outline:none; background:#fff; color:#1a1a1a;" />
-            <button type="submit" id="inline-nickname-confirm"
-                style="padding:3px 10px; font-size:0.85rem; font-weight:500;
-                       background:#34a853; color:white; border:none;
-                       border-radius:6px; cursor:pointer; margin-left:4px;">확인</button>
-        </form>
-    `;
+    // 신규
+    const formWrapper = document.createElement('span');
+    formWrapper.innerHTML = `
+    <form id="inline-nickname-form" style="display:inline;">
+        <input type="text" id="inline-nickname-input"
+            maxlength="12" placeholder="닉네임 입력" autocomplete="off"
+            style="width:100px; padding:3px 7px; font-size:0.88rem;
+                   border:1.5px solid #34a853; border-radius:6px;
+                   outline:none; background:#fff; color:#1a1a1a;" />
+        <button type="button" id="inline-nickname-confirm"
+            style="padding:3px 10px; font-size:0.85rem; font-weight:500;
+                   background:#34a853; color:white; border:none;
+                   border-radius:6px; cursor:pointer; margin-left:4px;">확인</button>
+    </form>
+`;
+    nicknameSpan.replaceWith(formWrapper);
 
-    const input = document.getElementById('inline-nickname-input');
-    const form = document.getElementById('inline-nickname-form');
+    const input = formWrapper.querySelector('#inline-nickname-input');
+    const form = formWrapper.querySelector('#inline-nickname-form');
+    const confirmBtn = formWrapper.querySelector('#inline-nickname-confirm');
 
     // 스크롤 + 포커스
     setTimeout(() => {
@@ -134,6 +138,8 @@ function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
             triggerSubmit(e);
         }
     });
+    confirmBtn.addEventListener('click', triggerSubmit);
+
     function validateUsername(name) {
         const korRegex = /^[가-힣ㄱ-ㅎㅏ-ㅣ]+$/;
         const engRegex = /^[a-zA-Z]+$/;
@@ -170,11 +176,6 @@ function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
         setTimeout(() => handleConfirm(), 60);
     }
 
-    // 신규
-    const confirmBtn = document.getElementById('inline-nickname-confirm');
-    if (confirmBtn) {
-        confirmBtn.addEventListener('click', triggerSubmit);
-    }
 }
 
 // ==========================================
