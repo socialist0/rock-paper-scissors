@@ -72,14 +72,10 @@ async function handleRpsGameOver(score) {
         }
     };
 
+    // 신규
     if (currentUsername) {
-        // 이미 닉네임 있음 → 바로 저장
         await doSave(currentUsername);
-    } else if (rank <= 10) {
-        // 10위 안 + 닉네임 없음 → 모달
-        showNicknameModal(score, rank, doSave);
     } else {
-        // 10위 밖 + 닉네임 없음 → 미입력으로 저장
         await doSave('미입력');
     }
 }
@@ -109,7 +105,13 @@ async function uploadRpsScore(score, nickname) {
         if (typeof lockRpsSubmitTime === 'function') lockRpsSubmitTime();
 
         await fetchGlobalRankings({ showMyRank: true, myScore: score });
-
+        // 10위 안 + 닉네임 없음 → 인라인 닉네임 입력 표시
+        if (!currentUsername && lastRpsUploadedId) {
+            showInlineNicknameInput('rankingList', lastRpsUploadedId, async (nickname) => {
+                await window._supabase.from('rankings').update({ username: nickname }).eq('id', lastRpsUploadedId);
+                fetchGlobalRankings();
+            });
+        }
     } catch (err) {
         console.error("가위바위보 업로드 실패:", err);
     }
@@ -153,8 +155,10 @@ async function fetchGlobalRankings({ showMyRank = false, myScore = null } = {}) 
             const isMyNewScore = lastRpsUploadedId && (String(player.id) === lastRpsUploadedId);
 
             if (isMyNewScore) {
+                li.dataset.recordId = String(player.id);
                 li.style.cssText = 'background-color:#e6f4ea;color:#137333;font-weight:bold;border-radius:5px;padding:6px 10px;margin:4px 0;transition:all 0.5s ease;';
-                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🏆 ${player.score}연승 <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
+                const nameDisplay = !currentUsername ? `<span class="inline-nickname">미입력</span>` : player.username;
+                li.innerHTML = `<strong>${index + 1}위.</strong> ${nameDisplay} — 🏆 ${player.score}연승 <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
             } else {
                 li.style.padding = '4px 8px';
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🏆 ${player.score}연승 <span style="font-size:0.85rem;color:#888;float:right;">(${dateString})</span>`;

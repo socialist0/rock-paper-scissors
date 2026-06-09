@@ -314,23 +314,21 @@ async function handleBlockGameOver(score) {
 
     const top10 = allData ? allData.slice(0, 10) : [];
     const rank = top10.length < 10 ? allData.filter(r => r.score > score).length + 1 : top10.filter(r => r.score > score).length + 1;
-    // 2. 닉네임 분기
+    // 신규
     const doSave = async (nickname) => {
         await blockSaveAndShowRank(score, nickname);
+    };
 
-        // 3. suddenwinner 조건 — 저장 완료 후 이동
+    if (currentUsername) {
+        await doSave(currentUsername);
         const threshold = (typeof BLOCK_THRESHOLD !== 'undefined') ? BLOCK_THRESHOLD : 9;
         if (score >= threshold) {
             sessionStorage.setItem('block_celebration_verified', 'true');
             sessionStorage.setItem('block_celebration_score', String(score));
             window.location.href = `suddenwinner.html?game=block&score=${score}`;
         }
-    };
-
-    if (currentUsername) {
-        await doSave(currentUsername);
     } else if (rank <= 10) {
-        showNicknameModal(score, rank, doSave);
+        await doSave('미입력');
     } else {
         await doSave('미입력');
     }
@@ -367,6 +365,20 @@ async function blockSaveAndShowRank(score, nickname) {
 
             // 저장 후 하이라이트 반영
             loadBlockRankings(score);
+
+            // 10위 안 + 닉네임 없음 → 인라인 닉네임 입력 표시
+            if (!currentUsername && lastBlockUploadedId) {
+                const threshold = (typeof BLOCK_THRESHOLD !== 'undefined') ? BLOCK_THRESHOLD : 9;
+                showInlineNicknameInput('blockRankingList', lastBlockUploadedId, async (nickname) => {
+                    await window._supabase.from('block_rank').update({ nickname: nickname }).eq('id', lastBlockUploadedId);
+                    loadBlockRankings(score);
+                    if (score >= threshold) {
+                        sessionStorage.setItem('block_celebration_verified', 'true');
+                        sessionStorage.setItem('block_celebration_score', String(score));
+                        window.location.href = `suddenwinner.html?game=block&score=${score}`;
+                    }
+                });
+            }
         } catch (err) {
             console.warn('[block_rank 저장 실패]', err);
         }
@@ -413,8 +425,10 @@ async function loadBlockRankings(myScore = null) {
             const isMyNew = lastBlockUploadedId && String(row.id) === lastBlockUploadedId;
 
             if (isMyNew) {
+                li.dataset.recordId = String(row.id);
                 li.style.cssText = 'background-color:#e6f4ea;color:#137333;font-weight:bold;border-radius:5px;padding:6px 10px;margin:4px 0;transition:all 0.5s ease;';
-                li.innerHTML = `${medal} <span>${row.nickname}</span> — ${row.score}층 <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
+                const nameDisplay = !currentUsername ? `<span class="inline-nickname">미입력</span>` : row.nickname;
+                li.innerHTML = `${medal} ${nameDisplay} — ${row.score}층 <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
             } else {
                 li.innerHTML = `${medal} <span>${row.nickname}</span> — ${row.score}층 <span style="font-size:0.85rem;color:#888;float:right;">(${dateString})</span>`;
             }
