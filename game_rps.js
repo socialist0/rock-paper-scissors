@@ -35,7 +35,7 @@ async function playGame(userChoice) {
         } else {
             lastRpsUploadedId = null;
         }
-        result = `졌습니다... 😭\n최종 기록: ${rpsStreak}연승\n다시 도전해 보세요!`;
+        result = `졌습니다... 😭\최종 기록: ${rpsStreak}연승\n다시 도전해 보세요!`;
         rpsStreak = 0;
         document.getElementById('user-score').innerText = rpsStreak;
     }
@@ -50,25 +50,37 @@ async function playGame(userChoice) {
 async function handleRpsGameOver(score) {
     if (!initSupabase()) return;
 
+    // 1. 현재 전체 데이터로 순위 계산
     const { data: allData } = await window._supabase
         .from('rankings')
         .select('score')
         .order('score', { ascending: false });
 
     const top10 = allData ? allData.slice(0, 10) : [];
-    const rank = top10.length < 10
-        ? allData.filter(r => r.score > score).length + 1
-        : top10.filter(r => r.score > score).length + 1;
+    const rank = top10.length < 10 ? allData.filter(r => r.score > score).length + 1 : top10.filter(r => r.score > score).length + 1;
+    // 2. 닉네임 분기
+    const doSave = async (nickname) => {
+        await uploadRpsScore(score, nickname);
 
-    if (currentUsername) {
-        await uploadRpsScore(score, currentUsername);
+        // 3. suddenwinner 조건 — 저장 완료 후 이동
         if (score >= RPS_THRESHOLD) {
             sessionStorage.setItem('rps_celebration_verified', 'true');
             sessionStorage.setItem('rps_celebration_score', score.toString());
-            setTimeout(() => { window.location.href = `suddenwinner.html?game=rps&score=${score}`; }, 800);
+            setTimeout(() => {
+                window.location.href = `suddenwinner.html?game=rps&score=${score}`;
+            }, 800);
         }
+    };
+
+    if (currentUsername) {
+        // 이미 닉네임 있음 → 바로 저장
+        await doSave(currentUsername);
+    } else if (rank <= 10) {
+        // 10위 안 + 닉네임 없음 → 모달
+        showNicknameModal(score, rank, doSave);
     } else {
-        await uploadRpsScore(score, '미입력');
+        // 10위 밖 + 닉네임 없음 → 미입력으로 저장
+        await doSave('미입력');
     }
 }
 
@@ -98,19 +110,6 @@ async function uploadRpsScore(score, nickname) {
 
         await fetchGlobalRankings({ showMyRank: true, myScore: score });
 
-        if (!currentUsername && lastRpsUploadedId) {
-            showInlineNicknameInput('rankingList', lastRpsUploadedId, async (nickname) => {
-                console.log('[update 시도] nickname:', nickname, 'id:', lastRpsUploadedId);
-                const { error } = await window._supabase.from('rankings').update({ username: nickname }).eq('id', lastRpsUploadedId);
-                console.log('[update 결과] error:', error);
-                fetchGlobalRankings();
-                if (score >= RPS_THRESHOLD) {
-                    sessionStorage.setItem('rps_celebration_verified', 'true');
-                    sessionStorage.setItem('rps_celebration_score', score.toString());
-                    setTimeout(() => { window.location.href = `suddenwinner.html?game=rps&score=${score}`; }, 800);
-                }
-            });
-        }
     } catch (err) {
         console.error("가위바위보 업로드 실패:", err);
     }
@@ -136,6 +135,7 @@ async function fetchGlobalRankings({ showMyRank = false, myScore = null } = {}) 
             return;
         }
 
+        // 동일 닉네임 + 동일 점수 중복 제거
         const uniqueRankings = [];
         const seenPairs = new Set();
         for (const player of data) {
@@ -153,10 +153,8 @@ async function fetchGlobalRankings({ showMyRank = false, myScore = null } = {}) 
             const isMyNewScore = lastRpsUploadedId && (String(player.id) === lastRpsUploadedId);
 
             if (isMyNewScore) {
-                li.dataset.recordId = String(player.id);
                 li.style.cssText = 'background-color:#e6f4ea;color:#137333;font-weight:bold;border-radius:5px;padding:6px 10px;margin:4px 0;transition:all 0.5s ease;';
-                const nameDisplay = !currentUsername ? `<span class="inline-nickname">미입력</span>` : player.username;
-                li.innerHTML = `<strong>${index + 1}위.</strong> ${nameDisplay} — 🏆 ${player.score}연승 <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
+                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🏆 ${player.score}연승 <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
             } else {
                 li.style.padding = '4px 8px';
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🏆 ${player.score}연승 <span style="font-size:0.85rem;color:#888;float:right;">(${dateString})</span>`;
@@ -164,6 +162,7 @@ async function fetchGlobalRankings({ showMyRank = false, myScore = null } = {}) 
             rankingList.appendChild(li);
         });
 
+        // 졌을 때 result-text에 최종기록 + 순위 표시
         if (showMyRank && myScore !== null && lastRpsUploadedId) {
             const allUnique = [];
             const allSeen = new Set();

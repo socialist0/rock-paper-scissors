@@ -77,68 +77,54 @@ function updateThresholdUI() {
 }
 
 // ==========================================
-// 2. 인라인 닉네임 입력 (10위 안에 들었을 때만 호출)
+// 2. 닉네임 모달 (10위 안에 들었을 때만 호출)
 // ==========================================
 
 /**
- * 랭킹 리스트 내 해당 행에 인라인 닉네임 입력을 표시합니다.
- * @param {string}   rankListId - 랭킹 ul 엘리먼트 id
- * @param {string}   insertedId - 방금 저장된 row id
+ * 닉네임 입력 모달을 띄웁니다.
+ * @param {number|string} score - 달성한 점수 (표시용)
+ * @param {number} rank         - 달성한 순위 (표시용)
  * @param {function} onConfirm  - 닉네임 확정 시 호출할 콜백 (nickname: string)
  */
-function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
-    const rankList = document.getElementById(rankListId);
-    if (!rankList) return;
+function showNicknameModal(score, rank, onConfirm) {
+    // 기존 모달이 있으면 제거
+    const existing = document.getElementById('nickname-modal-overlay');
+    if (existing) existing.remove();
 
-    // 내 행 찾기 (lastUploadedId 기준으로 하이라이트된 li)
-    const myLi = Array.from(rankList.querySelectorAll('li')).find(li =>
-        li.dataset.recordId === String(insertedId)
-    );
-    if (!myLi) return;
-
-    // 기존 닉네임 텍스트(미입력) 부분을 input으로 교체
-    const originalHTML = myLi.innerHTML;
-    const nicknameSpan = myLi.querySelector('.inline-nickname');
-    if (!nicknameSpan) return;
-
-    let temporaryName = '';
-
-    // 신규
-    const formWrapper = document.createElement('span');
-    formWrapper.innerHTML = `
-    <form id="inline-nickname-form" style="display:inline;">
-        <input type="text" id="inline-nickname-input"
-            maxlength="12" placeholder="닉네임 입력" autocomplete="off"
-            style="width:100px; padding:3px 7px; font-size:0.88rem;
-                   border:1.5px solid #34a853; border-radius:6px;
-                   outline:none; background:#fff; color:#1a1a1a;" />
-        <button type="button" id="inline-nickname-confirm"
-            style="padding:3px 10px; font-size:0.85rem; font-weight:500;
-                   background:#34a853; color:white; border:none;
-                   border-radius:6px; cursor:pointer; margin-left:4px;">확인</button>
-    </form>
+    const overlay = document.createElement('div');
+    overlay.id = 'nickname-modal-overlay';
+    overlay.innerHTML = `
+    <div id="nickname-modal">
+        <p class="nickname-modal-congrats">🏅 ${rank}위 달성!</p>
+        <p class="nickname-modal-score">점수: <strong>${score}</strong></p>
+        <p class="nickname-modal-desc">명예의 전당에 등록할 닉네임을 입력하세요</p>
+        <p class="nickname-modal-rule">한글 4자 또는 영어 8자 이내<br>(공백·특수문자·숫자 불가)</p>
+        
+        <form id="nickname-form">
+            <input type="text" id="nickname-modal-input" name="nickname-modal-input" maxlength="12" placeholder="닉네임 입력" autocomplete="off" />
+            <div class="nickname-modal-buttons">
+                <button type="submit" id="nickname-modal-confirm">등록하기</button>
+                <button type="button" id="nickname-modal-skip">건너뛰기</button>
+            </div>
+        </form>
+    </div>
 `;
-    nicknameSpan.replaceWith(formWrapper);
+    document.body.appendChild(overlay);
 
-    const input = formWrapper.querySelector('#inline-nickname-input');
-    const form = formWrapper.querySelector('#inline-nickname-form');
-    const confirmBtn = formWrapper.querySelector('#inline-nickname-confirm');
+    const input = document.getElementById('nickname-modal-input');
+    const nicknameForm = document.getElementById('nickname-form');
+    const skip = document.getElementById('nickname-modal-skip');
 
-    // 스크롤 + 포커스
-    setTimeout(() => {
-        input.scrollIntoView({ behavior: 'smooth', block: 'center' });
-        input.focus();
-    }, 100);
+    // 실시간 입력 값을 저장할 임시 변수 선언
+    let temporaryName = "";
 
-    input.addEventListener('input', (e) => { temporaryName = e.target.value; });
-    // 바로 아래에 추가
-    input.addEventListener('keydown', (e) => {
-        if (e.key === 'Enter') {
-            e.preventDefault();
-            triggerSubmit(e);
-        }
+    // 포커스 강제 정렬
+    setTimeout(() => input.focus(), 100);
+
+    // 자음/모음 조합 중이라도 타이핑할 때마다 값을 실시간 동기화
+    input.addEventListener('input', (e) => {
+        temporaryName = e.target.value;
     });
-    confirmBtn.addEventListener('click', triggerSubmit);
 
     function validateUsername(name) {
         const korRegex = /^[가-힣ㄱ-ㅎㅏ-ㅣ]+$/;
@@ -149,36 +135,67 @@ function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
     }
 
     function handleConfirm() {
+        // 사파리 버퍼 오류를 우회하여 실시간 변수에 누적된 값을 직접 사용
         const name = temporaryName.trim();
-        console.log('[handleConfirm] name:', name, 'temporaryName:', temporaryName);
+
         if (!name) {
-            input.style.borderColor = '#e74c3c';
-            input.placeholder = '닉네임을 입력해 주세요!';
             input.focus();
+            input.classList.add('shake');
+            setTimeout(() => input.classList.remove('shake'), 400);
+            input.placeholder = '닉네임을 입력해 주세요!';
             return;
         }
         if (!validateUsername(name)) {
-            console.log('[handleConfirm] 유효성 실패');
-            input.style.borderColor = '#e74c3c';
+            input.focus();
+            input.classList.add('shake');
+            setTimeout(() => input.classList.remove('shake'), 400);
+
+            // input 창을 비울 때 실시간 누적 변수도 함께 비워 동기화 오류 예방
             input.value = '';
             temporaryName = '';
+
             input.placeholder = '한글 4자 또는 영어 8자 이내';
-            input.focus();
             return;
         }
-        console.log('[handleConfirm] onConfirm 호출:', name);
+
         input.blur();
         currentUsername = name;
+        overlay.remove();
         onConfirm(name);
     }
 
-    function triggerSubmit(e) {
-        e.preventDefault();
-        e.stopPropagation();
-        input.blur();
-        setTimeout(() => handleConfirm(), 60);
+    function handleSkip() {
+        overlay.remove();
+        onConfirm('미입력');
     }
 
+    /**
+     * 💡 [macOS Safari 버그 격파 핵심 로직]
+     * 다른 빈 화면을 클릭해 포커스를 깨뜨린 현상을 그대로 구현합니다.
+     * 포커스를 먼저 해제하고 사파리가 한글 확정 정리를 완전히 끝마친 다음 사이클에 검증을 실행합니다.
+     */
+    function triggerSubmit(e) {
+        e.preventDefault();
+
+        // 1. 강제로 포커스를 해제하여 사파리의 한글 조합 확정(CompositionEnd) 유도
+        input.blur();
+
+        // 2. 사파리가 렌더링 스레드 처리를 완료하고 자바스크립트 명령을 안전하게 수용할 시간 확보
+        setTimeout(() => {
+            handleConfirm();
+        }, 60);
+    }
+
+    // 엔터키 및 폼 내부 서브밋 트리거 통합
+    nicknameForm.addEventListener('submit', triggerSubmit);
+
+    // 클릭 시 submit 처리를 가로채는 버그를 방지하기 위해 버튼 엘리먼트에 직접 바인딩
+    const confirmBtn = document.getElementById('nickname-modal-confirm');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', triggerSubmit);
+    }
+
+    skip.addEventListener('click', handleSkip);
 }
 
 // ==========================================

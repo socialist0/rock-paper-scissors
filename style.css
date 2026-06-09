@@ -544,51 +544,189 @@ hr {
 }
 
 /* ==========================================
-   인라인 닉네임 입력 스타일
+   닉네임 모달 스타일
    ========================================== */
 
-#inline-nickname-form {
-    display: inline;
+#nickname-modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.65);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: modalFadeIn 0.2s ease;
 }
 
-#inline-nickname-input {
-    width: 100px;
-    padding: 3px 7px;
-    font-size: 0.88rem;
-    border: 1.5px solid #34a853;
-    border-radius: 6px;
-    outline: none;
+@keyframes modalFadeIn {
+    from {
+        opacity: 0;
+    }
+
+    to {
+        opacity: 1;
+    }
+}
+
+#nickname-modal {
     background: #fff;
-    color: #1a1a1a;
-    vertical-align: middle;
-    touch-action: manipulation;
-    -webkit-tap-highlight-color: transparent;
+    border-radius: 16px;
+    padding: 32px 28px 24px;
+    width: min(360px, 90vw);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 10px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.25);
+    animation: modalSlideUp 0.25s ease;
 }
 
-#inline-nickname-input:focus {
-    border-color: #1a73e8;
+@keyframes modalSlideUp {
+    from {
+        transform: translateY(20px);
+        opacity: 0;
+    }
+
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
 }
 
-#inline-nickname-confirm {
-    padding: 3px 10px;
-    font-size: 0.85rem;
-    font-weight: 500;
-    background: #34a853;
-    color: white;
+.nickname-modal-congrats {
+    font-size: 1.6rem;
+    font-weight: 800;
+    color: #e67e00;
+    margin: 0;
+}
+
+.nickname-modal-score {
+    font-size: 1.1rem;
+    color: #333;
+    margin: 0;
+}
+
+.nickname-modal-desc {
+    font-size: 1rem;
+    color: #444;
+    margin: 4px 0 0;
+    text-align: center;
+}
+
+.nickname-modal-rule {
+    font-size: 0.78rem;
+    color: #999;
+    text-align: center;
+    margin: 0;
+    line-height: 1.5;
+}
+
+#nickname-modal-input {
+    width: 100%;
+    padding: 10px 14px;
+    font-size: 1rem;
+    border: 2px solid #ddd;
+    border-radius: 8px;
+    outline: none;
+    text-align: center;
+    box-sizing: border-box;
+    transition: border-color 0.2s;
+    margin-top: 4px;
+}
+
+#nickname-modal-input:focus {
+    border-color: #4a90d9;
+}
+
+/* 입력 오류 시 흔들림 */
+#nickname-modal-input.shake {
+    animation: inputShake 0.35s ease;
+    border-color: #e74c3c;
+}
+
+@keyframes inputShake {
+
+    0%,
+    100% {
+        transform: translateX(0);
+    }
+
+    20% {
+        transform: translateX(-6px);
+    }
+
+    40% {
+        transform: translateX(6px);
+    }
+
+    60% {
+        transform: translateX(-4px);
+    }
+
+    80% {
+        transform: translateX(4px);
+    }
+}
+
+.nickname-modal-buttons {
+    display: flex;
+    gap: 10px;
+    width: 100%;
+    margin-top: 6px;
+}
+
+/* 💡 macOS Safari 반응 우선순위 확보 방어선 구축 */
+#nickname-modal-confirm {
+    flex: 2;
+    padding: 11px 0;
+    font-size: 1rem;
+    font-weight: 700;
+    background: #4a90d9;
+    color: #fff;
     border: none;
-    border-radius: 6px;
+    border-radius: 8px;
     cursor: pointer;
-    margin-left: 4px;
-    vertical-align: middle;
     touch-action: manipulation;
     -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, transform 0.1s;
 }
 
-#inline-nickname-confirm:active {
-    background: #2d8f47;
+/* 💡 [핵심 치트키] 버튼 내부의 자식 텍스트 노드가 마우스 이벤트를 낚아채서 사파리를 먹통으로 만드는 버그 원천 차단 */
+#nickname-modal-confirm * {
+    pointer-events: none;
 }
 
-.inline-nickname {
-    color: #aaa;
-    font-style: italic;
+#nickname-modal-confirm:hover {
+    background: #357abd;
+}
+
+#nickname-modal-confirm:active {
+    transform: scale(0.97);
+}
+
+#nickname-modal-skip {
+    flex: 1;
+    padding: 11px 0;
+    font-size: 0.9rem;
+    font-weight: 600;
+    background: #f0f0f0;
+    color: #777;
+    border: none;
+    border-radius: 8px;
+    cursor: pointer;
+    touch-action: manipulation;
+    -webkit-tap-highlight-color: transparent;
+    transition: background 0.15s, transform 0.1s;
+}
+
+#nickname-modal-skip * {
+    pointer-events: none;
+}
+
+#nickname-modal-skip:hover {
+    background: #e0e0e0;
+}
+
+#nickname-modal-skip:active {
+    transform: scale(0.97);
 }

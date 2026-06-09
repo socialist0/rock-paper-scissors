@@ -140,16 +140,26 @@ async function handleCircleGameOver(score) {
 
     const top10 = allData ? allData.slice(0, 10) : [];
     const rank = top10.length < 10 ? allData.filter(r => r.score > score).length + 1 : top10.filter(r => r.score > score).length + 1;
-    // 신규
-    if (currentUsername) {
-        await uploadCircleScore(score, currentUsername);
+    // 2. 닉네임 분기
+    const doSave = async (nickname) => {
+        await uploadCircleScore(score, nickname);
+
+        // 3. suddenwinner 조건 — 저장 완료 후 이동
         if (score >= CIRCLE_THRESHOLD) {
             sessionStorage.setItem('circle_celebration_verified', 'true');
             sessionStorage.setItem('circle_celebration_score', score.toString());
-            setTimeout(() => { window.location.href = `suddenwinner.html?score=${score}`; }, 800);
+            setTimeout(() => {
+                window.location.href = `suddenwinner.html?score=${score}`;
+            }, 800);
         }
+    };
+
+    if (currentUsername) {
+        await doSave(currentUsername);
+    } else if (rank <= 10) {
+        showNicknameModal(score, rank, doSave);
     } else {
-        await uploadCircleScore(score, '미입력');
+        await doSave('미입력');
     }
 }
 
@@ -241,23 +251,8 @@ async function uploadCircleScore(score, nickname) {
         if (error) throw error;
         if (data && data.length > 0) { lastUploadedId = data[0].id; }
         if (typeof lockCircleSubmitTime === 'function') lockCircleSubmitTime();
-        // 신규
-        await fetchCircleRankings();
+        fetchCircleRankings();
         showMyRankNextToScore();
-
-        // 10위 안 + 닉네임 없음 → 인라인 닉네임 입력 표시
-        if (!currentUsername && lastUploadedId) {
-            showInlineNicknameInput('circleRankingList', lastUploadedId, async (nickname) => {
-                await window._supabase.from('circle_rankings').update({ username: nickname }).eq('id', lastUploadedId);
-                fetchCircleRankings();
-                showMyRankNextToScore();
-                if (score >= CIRCLE_THRESHOLD) {
-                    sessionStorage.setItem('circle_celebration_verified', 'true');
-                    sessionStorage.setItem('circle_celebration_score', score.toString());
-                    setTimeout(() => { window.location.href = `suddenwinner.html?score=${score}`; }, 800);
-                }
-            });
-        }
     } catch (err) {
         console.error("원 그리기 업로드 실패:", err);
     }
@@ -288,12 +283,9 @@ async function fetchCircleRankings() {
             const dateString = formatBlockDate(player.created_at);
             const li = document.createElement('li');
 
-            // 신규
             if (lastUploadedId && player.id === lastUploadedId) {
-                li.dataset.recordId = String(player.id);
                 li.style.cssText = 'background-color:#e6f4ea;color:#137333;font-weight:bold;border-radius:5px;padding:4px 8px;transition:all 0.5s ease;';
-                const nameDisplay = !currentUsername ? `<span class="inline-nickname">미입력</span>` : player.username;
-                li.innerHTML = `<strong>${index + 1}위.</strong> ${nameDisplay} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
+                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
             } else {
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🎯 정확도 <span>${player.score}%</span> <span style="font-size:0.85rem;color:#888;float:right;">(${dateString})</span>`;
             }

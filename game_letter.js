@@ -217,16 +217,26 @@ async function handleLetterGameOver(score) {
 
     const top10 = allData ? allData.slice(0, 10) : [];
     const rank = top10.length < 10 ? allData.filter(r => r.score > score).length + 1 : top10.filter(r => r.score > score).length + 1;
-    // 신규
-    if (currentUsername) {
-        await uploadLetterScore(score, currentUsername);
+    // 2. 닉네임 분기
+    const doSave = async (nickname) => {
+        await uploadLetterScore(score, nickname);
+
+        // 3. suddenwinner 조건 — 저장 완료 후 이동
         if (score >= ABC_THRESHOLD) {
             sessionStorage.setItem('abc_celebration_verified', 'true');
             sessionStorage.setItem('abc_celebration_score', score.toString());
-            setTimeout(() => { window.location.href = `suddenwinner.html?game=abc&score=${score}`; }, 800);
+            setTimeout(() => {
+                window.location.href = `suddenwinner.html?game=abc&score=${score}`;
+            }, 800);
         }
+    };
+
+    if (currentUsername) {
+        await doSave(currentUsername);
+    } else if (rank <= 10) {
+        showNicknameModal(score, rank, doSave);
     } else {
-        await uploadLetterScore(score, '미입력');
+        await doSave('미입력');
     }
 }
 
@@ -257,21 +267,8 @@ async function uploadLetterScore(score, nickname) {
 
         if (typeof lockLetterSubmitTime === 'function') lockLetterSubmitTime();
 
-        // 신규
         await fetchLetterRankings({ showMyRank: true, myScore: score });
 
-        // 10위 안 + 닉네임 없음 → 인라인 닉네임 입력 표시
-        if (!currentUsername && lastLetterUploadedId) {
-            showInlineNicknameInput('letterRankingList', lastLetterUploadedId, async (nickname) => {
-                await window._supabase.from('abc_rank').update({ username: nickname }).eq('id', lastLetterUploadedId);
-                fetchLetterRankings();
-                if (score >= ABC_THRESHOLD) {
-                    sessionStorage.setItem('abc_celebration_verified', 'true');
-                    sessionStorage.setItem('abc_celebration_score', score.toString());
-                    setTimeout(() => { window.location.href = `suddenwinner.html?game=abc&score=${score}`; }, 800);
-                }
-            });
-        }
     } catch (err) {
         console.error('앞뒤 맞추기 업로드 실패:', err);
     }
@@ -318,12 +315,9 @@ async function fetchLetterRankings({ showMyRank = false, myScore = null } = {}) 
             const li = document.createElement('li');
             const isMyNew = lastLetterUploadedId && String(player.id) === lastLetterUploadedId;
 
-            // 신규
             if (isMyNew) {
-                li.dataset.recordId = String(player.id);
                 li.style.cssText = 'background-color:#e6f4ea;color:#137333;font-weight:bold;border-radius:5px;padding:6px 10px;margin:4px 0;transition:all 0.5s ease;';
-                const nameDisplay = !currentUsername ? `<span class="inline-nickname">미입력</span>` : player.username;
-                li.innerHTML = `<strong>${index + 1}위.</strong> ${nameDisplay} — 🏆 ${player.score}연승 <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
+                li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🏆 ${player.score}연승 <span style="font-size:0.85rem;color:#137333;float:right;">(${dateString})</span>`;
             } else {
                 li.style.padding = '4px 8px';
                 li.innerHTML = `<strong>${index + 1}위.</strong> ${player.username} — 🏆 ${player.score}연승 <span style="font-size:0.85rem;color:#888;float:right;">(${dateString})</span>`;
