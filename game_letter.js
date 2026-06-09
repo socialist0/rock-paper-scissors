@@ -218,21 +218,15 @@ async function handleLetterGameOver(score) {
     const top10 = allData ? allData.slice(0, 10) : [];
     const rank = top10.length < 10 ? allData.filter(r => r.score > score).length + 1 : top10.filter(r => r.score > score).length + 1;
     // 신규
-    const doSave = async (nickname) => {
-        await uploadLetterScore(score, nickname);
-    };
-
     if (currentUsername) {
-        await doSave(currentUsername);
+        await uploadLetterScore(score, currentUsername);
         if (score >= ABC_THRESHOLD) {
             sessionStorage.setItem('abc_celebration_verified', 'true');
             sessionStorage.setItem('abc_celebration_score', score.toString());
             setTimeout(() => { window.location.href = `suddenwinner.html?game=abc&score=${score}`; }, 800);
         }
-    } else if (rank <= 10) {
-        await doSave('미입력');
     } else {
-        await doSave('미입력');
+        await uploadLetterScore(score, '미입력');
     }
 }
 

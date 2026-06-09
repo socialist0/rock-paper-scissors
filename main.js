@@ -127,7 +127,13 @@ function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
     }, 100);
 
     input.addEventListener('input', (e) => { temporaryName = e.target.value; });
-
+    // 바로 아래에 추가
+    input.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            triggerSubmit(e);
+        }
+    });
     function validateUsername(name) {
         const korRegex = /^[가-힣ㄱ-ㅎㅏ-ㅣ]+$/;
         const engRegex = /^[a-zA-Z]+$/;
@@ -159,11 +165,16 @@ function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
 
     function triggerSubmit(e) {
         e.preventDefault();
+        e.stopPropagation();
         input.blur();
         setTimeout(() => handleConfirm(), 60);
     }
 
-    form.addEventListener('submit', triggerSubmit);
+    // 신규
+    const confirmBtn = document.getElementById('inline-nickname-confirm');
+    if (confirmBtn) {
+        confirmBtn.addEventListener('click', triggerSubmit);
+    }
 }
 
 // ==========================================

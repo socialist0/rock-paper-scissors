@@ -314,23 +314,19 @@ async function handleBlockGameOver(score) {
 
     const top10 = allData ? allData.slice(0, 10) : [];
     const rank = top10.length < 10 ? allData.filter(r => r.score > score).length + 1 : top10.filter(r => r.score > score).length + 1;
-    // 신규
-    const doSave = async (nickname) => {
-        await blockSaveAndShowRank(score, nickname);
-    };
 
+
+    // 신규
     if (currentUsername) {
-        await doSave(currentUsername);
+        await blockSaveAndShowRank(score, currentUsername);
         const threshold = (typeof BLOCK_THRESHOLD !== 'undefined') ? BLOCK_THRESHOLD : 9;
         if (score >= threshold) {
             sessionStorage.setItem('block_celebration_verified', 'true');
             sessionStorage.setItem('block_celebration_score', String(score));
             window.location.href = `suddenwinner.html?game=block&score=${score}`;
         }
-    } else if (rank <= 10) {
-        await doSave('미입력');
     } else {
-        await doSave('미입력');
+        await blockSaveAndShowRank(score, '미입력');
     }
 }
 
