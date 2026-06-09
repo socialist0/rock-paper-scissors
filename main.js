@@ -150,6 +150,7 @@ function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
 
     function handleConfirm() {
         const name = temporaryName.trim();
+        console.log('[handleConfirm] name:', name, 'temporaryName:', temporaryName);
         if (!name) {
             input.style.borderColor = '#e74c3c';
             input.placeholder = '닉네임을 입력해 주세요!';
@@ -157,6 +158,7 @@ function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
             return;
         }
         if (!validateUsername(name)) {
+            console.log('[handleConfirm] 유효성 실패');
             input.style.borderColor = '#e74c3c';
             input.value = '';
             temporaryName = '';
@@ -164,6 +166,7 @@ function showInlineNicknameInput(rankListId, insertedId, onConfirm) {
             input.focus();
             return;
         }
+        console.log('[handleConfirm] onConfirm 호출:', name);
         input.blur();
         currentUsername = name;
         onConfirm(name);
