@@ -162,9 +162,13 @@ function blockSpawnNextBlock() {
     const startX = Math.random() < 0.5 ? -randomWidth : BLOCK_CANVAS_WIDTH;
     const dir = startX < 0 ? 1 : -1;
 
+    // ── 수정 구간 ───────────────────────────────────────
+    // 현재 스택의 가장 위(마지막) 블록을 가져옵니다.
+    const topBlock = blockStack[blockStack.length - 1];
+
     blockCurrentBlock = new BlockPiece(
         startX,
-        lastBlock.y - randomHeight,
+        topBlock.y - randomHeight, // 괄호 안을 topBlock.y로 수정
         randomWidth,
         randomHeight,
         randomColor,
@@ -172,6 +176,7 @@ function blockSpawnNextBlock() {
         dir,
         randomType
     );
+    // ──────────────────────────────────────────────────
 
     if (BLOCK_CANVAS_HEIGHT - blockCurrentBlock.y > 250) {
         blockTargetCameraY = (BLOCK_CANVAS_HEIGHT - 250) - blockCurrentBlock.y;
