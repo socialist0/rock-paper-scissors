@@ -5,26 +5,24 @@
 ## 📌 프로젝트 개요
 Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예의 전당 기능 탑재 미니게임 플랫폼입니다. 보안 위변조 방지 및 악의적인 트래픽 도배를 차단하는 상용 서비스 수준의 보안 레이어가 적용되어 있으며, 독립적인 모듈 구조(Modular Architecture)로 설계되어 있습니다. 현재 **가위바위보**, **원 그리기**, **앞뒤 맞추기 서바이벌**, **블록쌓기** 4개의 게임이 탭 방식으로 운영됩니다.
 
-특히 화면 전환에 따라 인터페이스와 스타일을 완전히 다르게 제어하는 **'닉네임 설정 화면'과 '게임 영역 화면'의 물리적·시각적 디자인 격리 설계**가 핵심적으로 적용되어 있습니다.
+접속 즉시 게임 화면으로 진입하며, **닉네임은 Top 10 달성 시에만 모달로 수집**하는 마찰 최소화 UX가 적용되어 있습니다. 기본 진입 탭은 원 그리기입니다.
 
 ---
 
-## 🎨 화면별 디자인 분리 및 레이아웃 아키텍처
+## 🎨 화면 레이아웃 아키텍처
 
-본 플랫폼은 한 페이지 내에서 상태에 따라 화면을 전환하는 SPA(Single Page Application) 방식을 취하면서도, 사용자 경험을 위해 두 화면의 스타일 디자인을 철저하게 이원화했습니다.
+접속 즉시 게임 화면이 표시되는 SPA 방식입니다. 닉네임 입력 선행 단계를 완전히 제거했습니다.
 
-### 1. 🔑 닉네임 입력 화면 (로그인 전)
-- **레이아웃**: 상단 배너나 제목을 과감히 생략하고, 오직 닉네임 입력 보드(`#user-setup`)만을 브라우저 화면의 **정밀한 기하학적 수직·가로 정중앙(Center of View)**에 격리 배치합니다.
-- **배경 연출**: `body.nickname-page` 클래스를 동적으로 주입하여 `images/nickbgimage.png` 배경화면이 전체 화면에 꽉 차게 덮이도록 제어합니다 (`background-size: cover; background-attachment: fixed;`).
-- **가독성 보호**: 배경 이미지 위에서 글자가 흐려지지 않도록 안내 텍스트에 강력한 섀도우 효과(`text-shadow`)를 두르고, 입력 칸과 버튼은 반투명 흰색 레이어를 적용하여 가독성을 100% 사수합니다.
+### 🕹️ 게임 영역
+- **기본 진입 탭**: 원 그리기 (`switchGame('circle')`이 load 이벤트에서 호출)
+- **레이아웃**: 단색 톤 배경, 상단 벽 밀착 배너(`border-radius: 0 0 12px 12px`)
+- **환영 문구**: 고정 문구 "원하시는 게임을 선택하세요." (닉네임 표시 제거)
 
-### 2. 🕹️ 실제 게임 영역 화면 (로그인 후)
-- **레이아웃**: 로그인 성공 즉시 `body.nickname-page` 클래스를 제거하여 단색 톤(`background-color: #f4f7f6`)의 차분하고 몰입감 높은 게임판 배경으로 전환됩니다. 또한 화면 배치가 수직 중앙 정렬에서 **상단 벽 밀착 정렬(`justify-content: flex-start`)**로 재구성됩니다.
-- **최상단 일체형 배너 시스템**: 과거의 텍스트 제목(`잠시만 혹시...?`)을 전면 삭제하고, 진짜 이미지 자원인 `images/logoimage.png`를 활용한 독창적인 **독립형 버튼형 배너(`#game-banner`)**를 도입했습니다.
-  - **밀착 디자인**: 게임 화면 진입 시 상단에 어정쩡하게 붕 뜨는 빈 여백을 제로화(`margin: 0 auto; padding: 0`)하여, 배너 상단면이 브라우저 천장 벽에 칼같이 바짝 맞물려 떨어지도록 튜닝했습니다.
-  - **모서리 변칙 제어**: 천장과 맞닿는 배너의 위쪽 모서리는 라운딩을 주지 않고(`border-radius: 0 0 12px 12px`), 아래쪽 두 모서리만 둥글게 깎아 전체 UI 화면과 매끄러운 공간 일체감을 형성합니다.
-- **배너 내비게이션 기능**: 유저가 언제든지 게임 영역 최상단의 배너 이미지를 마우스로 클릭하거나 모바일로 터치하면, 게임 세션이 즉시 로그아웃 처리되며 다시 배경이 깔린 정중앙의 닉네임 설정 화면으로 완벽하게 되돌아가는 리턴 루프(Return Loop)를 제공합니다. (`cursor: pointer` 및 클릭 시 꾹 눌리는 수축 반응 `:active` 효과 탑재)
-- **환영 문구의 하단 재배치**: 배너 내부나 글자 뒤에 배경으로 뭉개지던 환영 메시지를 배너 이미지의 **바로 아래쪽 외곽 공간(`.welcome-text`)**으로 완벽하게 끄집어내어, 정돈된 가독성과 넓은 공간 밸런스를 구축했습니다.
+### 🏅 닉네임 수집 모달 (`showNicknameModal`)
+- **호출 조건**: 게임 오버 후 Top 10 진입 시에만 모달 표시
+- **세션 유지**: 한 번 입력한 닉네임(`currentUsername`)은 이후 게임에서 자동 사용
+- **건너뛰기**: `미입력`으로 저장되며 `currentUsername`은 빈 값 유지 → 다음 게임에서 Top 10 진입 시 모달 재표시
+- **macOS Safari IME 이슈**: 한글 입력 후 등록 버튼 첫 번째 클릭이 무시되는 고질적 버그. `form submit` + `blur()` + `setTimeout 60ms` + `temporaryName` 조합으로 완화했으나 완전 해결 미달성. iPhone Safari에서는 정상 동작.
 
 ---
 
@@ -57,7 +55,7 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 
 ### 4. 🧱 블록쌓기 (Block Stacking Game)
 - **게임 방식**: 좌우로 움직이는 블록을 화면 터치 또는 스페이스바로 낙하시켜 최대한 높이 쌓습니다. 쌓인 층수가 점수(연승)로 기록됩니다.
-- **물리 엔진**: `BlockPiece` 클래스 기반 무게중심(Center of Gravity) 계산으로 실제 붕괴를 연출합니다. 블록 형태는 직사각형(`rectangle`)과 사다리꼴(`trapezoid`) 두 종류가 무작위로 등장합니다.
+- **물리 엔진**: `BlockPiece` 클래스 기반 무게중심(Center of Gravity) 계산으로 실제 붕괴를 연출합니다. 블록 형태는 직사각형(`rectangle`), 사다리꼴(`trapezoid`), 세로형 직사각형(`tall`) 세 종류가 무작위로 등장합니다. `tall` 타입은 폭이 좁고 높이가 높아 무게중심이 불안정하여 난이도를 높입니다.
 - **붕괴 애니메이션**: 균형이 무너지면 해당 블록부터 위쪽 전체가 회전하며 낙하하는 다중 붕괴(Multi-Collapse) 애니메이션이 재생됩니다.
 - **카메라 스크롤**: 블록을 높이 쌓을수록 카메라가 부드럽게 위로 따라올라가며, 게임 오버 시 자연스럽게 원위치로 복귀합니다.
 - **히든 보상**: Supabase `game_config` 테이블의 `block_threshold` 값 이상 쌓으면 깜짝 축하 페이지(`suddenwinner.html?game=block`)로 이동합니다.
@@ -113,11 +111,11 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 | `index.html` | 웹 게임 UI 레이아웃, Canvas 구성, 헤더 통합 및 스크립트 로드 총괄 |
 | `style.css` | 플랫폼 공통 레이아웃 및 탭 메뉴, 버튼, 랭킹 리스트 디자인 스타일시트 (화면 분리 핵심 통제) |
 | `security.js` | 암호화 해시 생성(SHA-256) 및 게임별 쿨타임 타임락 통제 담당 |
-| `main.js` | 플랫폼 공통 관리자 모듈. Supabase 초기화, game_config fetch, 닉네임 세션 및 독립형 배너 내비게이션 복귀 로직 통제. 4탭 전환(`switchGame`) 및 `RPS_THRESHOLD`, `CIRCLE_THRESHOLD`, `ABC_THRESHOLD`, `BLOCK_THRESHOLD` 전역변수 관리 포함 |
-| `game_rps.js` | 가위바위보 독립 모듈 (컴퓨터 패 산출, 연승 연산, 랭킹 데이터 입출력, 축하 페이지 분기) |
-| `game_circle.js` | 원 그리기 독립 모듈 (파란 실선 드로잉, 빨간 점선 가이드 매칭 시각화, 판정 엔진, 드로잉 리플레이 애니메이션, 축하 페이지 분기). `ment.json`을 내부에서 직접 `fetch`하여 `circleMents` 로컬 배열에 캐싱 |
-| `game_letter.js` | 앞뒤 맞추기 서바이벌 독립 모듈 (알파벳/한글 자음 무작위 출제, 5초 타이머, 2단계 입력, `abc_rank` 테이블 랭킹 입출력, 축하 페이지 분기) |
-| `game_block.js` | 블록쌓기 독립 모듈 (`BlockPiece` 클래스, 무게중심 안정성 판정, 다중 붕괴 애니메이션, 카메라 스크롤, `block_rank` 테이블 랭킹 입출력, 축하 페이지 분기) |
+| `main.js` | 플랫폼 공통 관리자 모듈. Supabase 초기화, game_config fetch, **닉네임 모달(`showNicknameModal`)**, 4탭 전환(`switchGame`) 및 threshold 전역변수 관리. 앱 진입 시 닉네임 화면 없이 바로 게임 화면 표시 및 기본 탭(원 그리기) 자동 전환 포함 |
+| `game_rps.js` | 가위바위보 독립 모듈 (컴퓨터 패 산출, 연승 연산, 랭킹 데이터 입출력, 닉네임 분기(`handleRpsGameOver`), 축하 페이지 분기) |
+| `game_circle.js` | 원 그리기 독립 모듈 (파란 실선 드로잉, 빨간 점선 가이드 매칭 시각화, 판정 엔진, 드로잉 리플레이 애니메이션, 닉네임 분기(`handleCircleGameOver`), 축하 페이지 분기). `ment.json`을 내부에서 직접 `fetch`하여 `circleMents` 로컬 배열에 캐싱 |
+| `game_letter.js` | 앞뒤 맞추기 서바이벌 독립 모듈 (알파벳/한글 자음 무작위 출제, 5초 타이머, 2단계 입력, `abc_rank` 테이블 랭킹 입출력, 닉네임 분기(`handleLetterGameOver`), 축하 페이지 분기) |
+| `game_block.js` | 블록쌓기 독립 모듈 (`BlockPiece` 클래스, 무게중심 안정성 판정, 다중 붕괴 애니메이션, 카메라 스크롤, `block_rank` 테이블 랭킹 입출력, 닉네임 분기(`handleBlockGameOver`), 축하 페이지 분기). 블록 타입: `rectangle`, `trapezoid`, `tall` |
 | `suddenwinner.html` | 가위바위보/원 그리기/앞뒤 맞추기/블록쌓기 공용 축하 페이지. SessionStorage 티켓 검증 및 게임별(`?game=block`, `?game=rps`, `?game=abc`, 파라미터 없음) 문구 분기 처리 |
 | `ment.json` | 원 그리기 최종 점수대별(0% ~ 100%) 맞춤형 평가 피드백 멘트 데이터셋 |
 | `config.js` | Supabase URL 및 anon_key 보관 |
@@ -131,13 +129,47 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 ### 스크립트 로드 순서 의존성
 반드시 `config.js` → `main.js` → `security.js` → 각 게임 모듈(`game_rps.js` → `game_circle.js` → `game_letter.js` → `game_block.js`) 순서로 로드되어야 Supabase 클라이언트 및 암호화 해시 엔진을 에러 없이 상속받을 수 있습니다.
 
-### 독립형 배너 이미지 내비게이션 연동 (`images/logoimage.png`)
-메인 화면의 독립 배너 이미지를 누르면 언제든지 로그인 세션이 리셋되며 최초 닉네임 설정 화면으로 완벽하게 복귀하는 제어 트리거를 심었습니다. `main.js` 내부에서 `document.getElementById('game-banner')` 요소를 안전하게 확보하여 `click` 이벤트를 매핑했으며, 복귀 시 body에 `nickname-page` 클래스를 즉각 재주입하여 배경화면 스타일을 안전하게 복구합니다.
+### 닉네임 수집 구조 전면 변경 (2026-06-07)
+- **변경 전**: 앱 진입 시 닉네임을 필수로 입력해야 게임 화면 진입 가능.
+- **변경 후**: 앱 진입 즉시 게임 화면 표시. 닉네임은 게임 오버 후 Top 10 진입 시에만 모달(`showNicknameModal`)로 수집.
+- **닉네임 분기 로직** (4개 게임 모듈 공통):
+  1. `currentUsername` 있음 → 바로 저장
+  2. `currentUsername` 없음 + Top 10 진입 → 모달 표시 → 입력 후 저장
+  3. `currentUsername` 없음 + Top 10 밖 → `미입력`으로 저장
+- **건너뛰기**: 모달에서 건너뛰면 `미입력`으로 저장되나 `currentUsername`은 빈 값 유지 → 다음 게임에서 Top 10 진입 시 모달 재표시
+- **순위 계산 기준**: DB 전체 데이터가 아닌 **Top 10 기준**으로 진입 여부 판단. `allData.slice(0, 10)`으로 추출 후 비교.
+- **기본 진입 탭**: `switchGame('circle')`을 `load` 이벤트에서 호출하여 원 그리기가 기본 탭으로 표시됨.
 
-### 닉네임 입력 제한 및 레이아웃
-- 최대 **12바이트** 제한 (한글 4자 = 12바이트 / 영어 8자 이내)
-- `placeholder` 및 초과 시 alert 문구 모두 12바이트 기준으로 통일
-- 입력 UI: 안내 문구(위) → 입력칸(아래) → 시작하기 버튼 세로 배치를 완전한 화면 중앙에 고정하기 위해 `body.nickname-page` 진입 시 `justify-content: center`와 전용 패딩을 활성화합니다.
+### 닉네임 모달 confirm 변수명 충돌 버그 (2026-06-07)
+- **원인**: `const confirm = ...`이 `window.confirm`과 충돌.
+- **해결**: `confirmBtn`으로 변수명 변경.
+
+### macOS Safari 한글 IME 닉네임 모달 2회 클릭 버그 (미해결)
+- **증상**: macOS Safari에서 한글 입력 후 등록 버튼 첫 번째 클릭이 무시됨. iPhone Safari에서는 정상.
+- **시도**: `mousedown`, `blur()`, `setTimeout`, `form submit`, `temporaryName` 실시간 동기화 등 다양한 방법 시도.
+- **현재 상태**: 완전 해결 미달성. 영어 입력 및 iPhone에서는 정상 동작.
+
+### Supabase RLS UPDATE 정책 추가 (2026-06-07)
+- **배경**: 닉네임 인라인 입력 방식 시도 시 `미입력`으로 insert 후 닉네임 확정 시 update하는 구조가 필요했는데, 기존 RLS에 UPDATE 정책이 없어 `error: null`이지만 실제 저장이 안 되는 문제 발생.
+- **해결**: SQL Editor에서 4개 테이블 모두 UPDATE 정책 추가.
+```sql
+CREATE POLICY "allow_update_username" ON rankings FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "allow_update_username" ON circle_rankings FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "allow_update_username" ON abc_rank FOR UPDATE USING (true) WITH CHECK (true);
+CREATE POLICY "allow_update_username" ON block_rank FOR UPDATE USING (true) WITH CHECK (true);
+```
+- **교훈**: DB 쓰기 방식이 insert → update로 바뀌는 설계 변경 시 RLS 정책도 함께 확인 필요.
+
+### suddenwinner.html 모바일 레이아웃 버그 (2026-06-10)
+- **원인**: `height: 100vh` + `overflow: hidden`으로 인해 모바일에서 컨테이너가 화면 밖으로 넘치고 버튼이 보이지 않음. footer가 flex 컨테이너 옆에 떠버리는 문제도 발생.
+- **해결**: `min-height: 100vh` + `padding` + `flex-direction: column`으로 변경. 폰트 크기를 `clamp()`로 반응형 처리. footer에 `width: 100%` 추가.
+
+### 축하 페이지에서 해당 게임 탭으로 복귀 (2026-05-31)
+- **변경 전**: `suddenwinner.html`의 '다시 도전하기' 버튼이 `index.html`로 이동하여 항상 첫 화면이 표시됨.
+- **해결**: 버튼 href를 `index.html?game=xxx`로 수정하고, `main.js`의 `load` 이벤트에서 URL 파라미터 `?game=xxx`를 읽어 자동으로 해당 탭(`switchGame()`)으로 전환.
+
+### suddenwinner 복귀 후 랭킹 하이라이트 소멸 (설계상 한계)
+- `suddenwinner.html`에서 돌아올 때 페이지가 새로 로드되어 `lastUploadedId` 등 JS 변수가 초기화됨. sessionStorage로 id를 보존하는 방식으로 해결 가능하나 현재 미적용.
 
 ### Google AdSense 연동
 - `index.html` `<head>` 태그 내에 `<meta name="google-adsense-account" content="ca-pub-...">` 코드 삽입 완료
@@ -162,7 +194,7 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 `game_config` 테이블의 실제 컬럼명은 `key`, `value`입니다. `main.js`에서 `.select('key, value')` 및 `item.key`, `item.value`로 참조해야 합니다. `config_key`, `config_value` 등 다른 이름으로 조회하면 400 에러가 발생합니다.
 
 ### 각 게임 모듈의 랭킹 초기 로드 함수 필수 선언
-`main.js`의 `saveUsername()`에서 로그인 성공 시 `loadRpsRankings()`, `loadCircleRankings()`, `loadLetterRankings()`, `loadBlockRankings()`를 호출합니다. 각 게임 모듈 파일 내에 이 함수들이 반드시 선언되어 있어야 하며, `game_circle.js`는 추가로 `window.addEventListener('load', () => { initCircleCanvas(); })`도 포함해야 캔버스가 정상 초기화됩니다. `game_block.js`도 마찬가지로 `window.addEventListener('load', () => { initBlockGame(); })`가 포함되어야 블록 캔버스가 초기화됩니다.
+`main.js`의 `load` 이벤트에서 `loadRpsRankings()`, `loadCircleRankings()`, `loadLetterRankings()`, `loadBlockRankings()`를 호출합니다. 각 게임 모듈 파일 내에 이 함수들이 반드시 선언되어 있어야 하며, `game_circle.js`는 추가로 `window.addEventListener('load', () => { initCircleCanvas(); })`도 포함해야 캔버스가 정상 초기화됩니다. `game_block.js`도 마찬가지로 `window.addEventListener('load', () => { initBlockGame(); })`가 포함되어야 블록 캔버스가 초기화됩니다.
 
 ### 블록쌓기 오버레이 미숨김 버그 (해결 완료)
 - **원인**: `#block-overlay`의 초기 숨김이 `.hidden` CSS 클래스에만 의존했는데 `.hidden` 클래스가 정의되지 않아 오버레이가 항상 노출되고, 게임이 오버레이 뒤에서 실행되는 문제가 발생했습니다.
@@ -200,8 +232,8 @@ Supabase 백엔드와 GitHub Pages 프론트엔드를 연동한 실시간 명예
 - **교훈**: pg_cron의 `$$...$$` 블록에는 반드시 SQL 문 1개만 작성해야 합니다.
 
 ### 축하 페이지에서 해당 게임 탭으로 복귀 (2026-05-31)
-- **변경 전**: `suddenwinner.html`의 '다시 도전하기' 버튼이 `index.html`로 이동하여 항상 로그인 화면이 표시됨.
-- **해결**: 버튼 href를 `index.html?game=xxx`로 수정하고, `main.js`의 `saveUsername()` 완료 시 URL 파라미터 `?game=xxx`를 읽어 자동으로 해당 탭(`switchGame()`)으로 전환.
+- **변경 전**: `suddenwinner.html`의 '다시 도전하기' 버튼이 `index.html`로 이동하여 항상 첫 화면이 표시됨.
+- **해결**: 버튼 href를 `index.html?game=xxx`로 수정하고, `main.js`의 `load` 이벤트에서 URL 파라미터 `?game=xxx`를 읽어 자동으로 해당 탭(`switchGame()`)으로 전환.
 
 ### 블록쌓기 Top 10 하이라이트 미작동 버그 (2026-05-31)
 - **원인 1**: `loadBlockRankings`의 `.select('nickname, score, created_at')`에서 `id` 컬럼이 누락되어 `lastBlockUploadedId`와 비교 불가.
