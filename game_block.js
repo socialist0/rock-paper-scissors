@@ -91,7 +91,7 @@ class BlockPiece {
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        if (this.type === 'rectangle') {
+        if (this.type === 'rectangle' || this.type === 'tall') {
             ctx.rect(-this.width / 2, -this.height / 2, this.width, this.height);
         } else if (this.type === 'trapezoid') {
             ctx.moveTo(-this.width / 2, this.height / 2);
@@ -109,7 +109,7 @@ class BlockPiece {
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        if (this.type === 'rectangle') {
+        if (this.type === 'rectangle' || this.type === 'tall') {
             ctx.rect(this.x, this.y + offsetY, this.width, this.height);
         } else if (this.type === 'trapezoid') {
             ctx.moveTo(this.x, this.y + this.height + offsetY);
@@ -150,12 +150,15 @@ function blockInitGame() {
 }
 
 function blockSpawnNextBlock() {
-    const lastBlock = blockStack[blockStack.length - 1];
-    const randomWidth = Math.floor(Math.random() * (150 - 60 + 1)) + 60;
-    const randomHeight = Math.floor(Math.random() * (50 - 15 + 1)) + 15;
+    // 신규
+    const randomType = ['rectangle', 'trapezoid', 'tall'][Math.floor(Math.random() * 3)];
+    const randomWidth = randomType === 'tall'
+        ? Math.floor(Math.random() * (50 - 30 + 1)) + 30
+        : Math.floor(Math.random() * (150 - 60 + 1)) + 60;
+    const randomHeight = randomType === 'tall'
+        ? Math.floor(Math.random() * (70 - 50 + 1)) + 50
+        : Math.floor(Math.random() * (50 - 15 + 1)) + 15;
     const randomColor = blockColors[Math.floor(Math.random() * blockColors.length)];
-    const types = ['rectangle', 'trapezoid'];
-    const randomType = types[Math.floor(Math.random() * types.length)];
     const startX = Math.random() < 0.5 ? -randomWidth : BLOCK_CANVAS_WIDTH;
     const dir = startX < 0 ? 1 : -1;
 
