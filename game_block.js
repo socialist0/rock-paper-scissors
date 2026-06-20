@@ -287,7 +287,42 @@ function blockDrawBackgroundGrid(offsetY) {
         blockCtx.stroke();
     }
 }
+// 신규 추가 (blockDrawBackgroundGrid 함수 다음 줄에)
+function blockDrawCenterOfGravityLine(offsetY) {
+    if (blockStack.length === 0) return;
 
+    let totalMass = 0;
+    let weightedCenterSum = 0;
+
+    blockStack.forEach(block => {
+        totalMass += block.mass;
+        weightedCenterSum += block.getCenter() * block.mass;
+    });
+
+    if (totalMass === 0) return;
+    const cogX = weightedCenterSum / totalMass;
+
+    // 스택 최상단부터 바닥까지 수직선
+    const topY = blockStack[blockStack.length - 1].y + offsetY;
+    const bottomY = blockStack[0].y + blockStack[0].height + offsetY;
+
+    blockCtx.save();
+    blockCtx.strokeStyle = 'rgba(255, 0, 80, 0.85)';
+    blockCtx.lineWidth = 2;
+    blockCtx.setLineDash([6, 4]);
+    blockCtx.beginPath();
+    blockCtx.moveTo(cogX, topY - 15);
+    blockCtx.lineTo(cogX, bottomY);
+    blockCtx.stroke();
+    blockCtx.setLineDash([]);
+
+    // 무게중심 표시점
+    blockCtx.beginPath();
+    blockCtx.arc(cogX, topY - 15, 4, 0, Math.PI * 2);
+    blockCtx.fillStyle = 'rgba(255, 0, 80, 0.95)';
+    blockCtx.fill();
+    blockCtx.restore();
+}
 // ==========================================
 // 게임 오버 + 랭킹 저장
 // ==========================================
@@ -461,6 +496,10 @@ function blockAnimate() {
     }
 
     blockDrawBackgroundGrid(blockCameraY);
+
+    if (!blockIsCollapsing) {
+        blockDrawCenterOfGravityLine(blockCameraY);
+    }
 
     if (blockIsCollapsing) {
         let allOutOffScreen = true;
