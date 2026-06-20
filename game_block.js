@@ -2,10 +2,6 @@
 // game_block.js — 블록쌓기 게임 독립 모듈
 // ==========================================
 
-// ── 직사각형 블록 이미지 ──
-const blockRectImage = new Image();
-blockRectImage.src = 'images/busimage.png';
-
 // ── 캔버스 및 DOM 참조 ──
 let blockCanvas, blockCtx;
 let blockScoreEl, blockOverlay, blockStartBtn, blockTitleEl, blockFinalScoreEl;
@@ -23,7 +19,6 @@ let blockCurrentBlock = {};
 let blockCameraY = 0;
 let blockTargetCameraY = 0;
 let lastBlockUploadedId = null; // 하이라이트용
-let blockGameOverCalled = false;
 
 const blockColors = [
     '#ff595e', '#ffca3a', '#8ac926', '#1982c4',
@@ -91,23 +86,12 @@ class BlockPiece {
         }
     }
 
-    // 신규
     drawAtOrigin(ctx) {
-        // 신규
-        if (this.type === 'rectangle' && blockRectImage.complete) {
-            const dx = -this.width / 2, dy = -this.height / 2;
-            ctx.fillStyle = this.color;
-            ctx.fillRect(dx, dy, this.width, this.height);
-            ctx.drawImage(blockRectImage, dx, dy, this.width, this.height);
-            return;
-        }
-
         ctx.fillStyle = this.color;
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        // 신규
-        if (this.type === 'rectangle' || this.type === 'tall' || this.type === 'base') {
+        if (this.type === 'rectangle' || this.type === 'tall') {
             ctx.rect(-this.width / 2, -this.height / 2, this.width, this.height);
         } else if (this.type === 'trapezoid') {
             ctx.moveTo(-this.width / 2, this.height / 2);
@@ -120,22 +104,12 @@ class BlockPiece {
         ctx.stroke();
     }
 
-    // 신규
     drawNormal(ctx, offsetY) {
-        // 신규
-        if (this.type === 'rectangle' && blockRectImage.complete) {
-            ctx.fillStyle = this.color;
-            ctx.fillRect(this.x, this.y + offsetY, this.width, this.height);
-            ctx.drawImage(blockRectImage, this.x, this.y + offsetY, this.width, this.height);
-            return;
-        }
-
         ctx.fillStyle = this.color;
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        // 신규
-        if (this.type === 'rectangle' || this.type === 'tall' || this.type === 'base') {
+        if (this.type === 'rectangle' || this.type === 'tall') {
             ctx.rect(this.x, this.y + offsetY, this.width, this.height);
         } else if (this.type === 'trapezoid') {
             ctx.moveTo(this.x, this.y + this.height + offsetY);
@@ -163,8 +137,8 @@ function blockInitGame() {
     if (blockScoreEl) blockScoreEl.innerText = blockScore;
 
     // 고정 바닥판
-    // 신규
-    blockStack.push(new BlockPiece(120, BLOCK_CANVAS_HEIGHT - 30, 160, 30, '#444', 0, 0, 'base'));
+    blockStack.push(new BlockPiece(120, BLOCK_CANVAS_HEIGHT - 30, 160, 30, '#444', 0, 0, 'rectangle'));
+
     blockSpawnNextBlock();
     blockGameActive = true;
     if (blockOverlay) blockOverlay.style.display = 'none';
@@ -556,9 +530,7 @@ function initBlockGame() {
 
     // 시작 버튼
     blockStartBtn?.addEventListener('click', (e) => {
-        e.preventDefault();
         e.stopPropagation();
-        e.stopImmediatePropagation();
         blockInitGame();
     });
 

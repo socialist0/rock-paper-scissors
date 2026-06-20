@@ -1,5 +1,6 @@
 <!DOCTYPE html>
 <html lang="ko">
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -8,35 +9,37 @@
     <link rel="stylesheet" href="style.css">
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <!-- Google tag (gtag.js) -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-VWVKYFR83R"></script>
-<script>
-  window.dataLayer = window.dataLayer || [];
-  function gtag(){dataLayer.push(arguments);}
-  gtag('js', new Date());
+    <script async src="https://www.googletagmanager.com/gtag/js?id=G-VWVKYFR83R"></script>
+    <script>
+        window.dataLayer = window.dataLayer || [];
+        function gtag() { dataLayer.push(arguments); }
+        gtag('js', new Date());
 
-  gtag('config', 'G-VWVKYFR83R');
-</script>
+        gtag('config', 'G-VWVKYFR83R');
+    </script>
 </head>
+
 <body>
-    
+
     <div id="game-area">
-        
+
         <img id="game-banner" src="images/logoimage.png" alt="게임 배너" title="클릭하면 닉네임 설정으로 돌아갑니다">
-        
+
         <p class="welcome-text">원하시는 게임을 선택하세요.</p>
-        
+
         <div class="tab-menu">
-            <button id="tab-rps"    class="tab-btn"        onclick="switchGame('rps')">가위바위보</button>
+            <button id="tab-rps" class="tab-btn" onclick="switchGame('rps')">가위바위보</button>
             <button id="tab-circle" class="tab-btn active" onclick="switchGame('circle')">⭕ 원 그리기</button>
-            <button id="tab-letter" class="tab-btn"        onclick="switchGame('letter')">글자 맞추기</button>
-            <button id="tab-block"  class="tab-btn"        onclick="switchGame('block')">🧱 블록쌓기</button>
+            <button id="tab-letter" class="tab-btn" onclick="switchGame('letter')">글자 맞추기</button>
+            <button id="tab-block" class="tab-btn" onclick="switchGame('block')">🧱 블록쌓기</button>
         </div>
 
         <!-- ===== 게임 1: 가위바위보 ===== -->
         <div id="content-rps" class="game-content content">
             <div class="score-board">
                 <p>나의 현재 연승: <span id="user-score">0</span></p>
-                <div style="font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; font-weight: normal; line-height: 1.5;">
+                <div
+                    style="font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; font-weight: normal; line-height: 1.5;">
                     💡 <strong><span id="rps-threshold-hint">9</span>연승</strong>을 하고 깜짝 축하 페이지를 만나세요!
                 </div>
             </div>
@@ -51,7 +54,7 @@
                 <h2 id="result-text">버튼을 눌러 게임을 시작하세요!</h2>
             </div>
 
-            <hr> 
+            <hr>
             <div class="ranking-board">
                 <h3>🌍 가위바위보 전 세계 Top 10 연승 기록</h3>
                 <ul id="rankingList" class="ranking-list">
@@ -64,7 +67,8 @@
         <div id="content-circle" class="game-content content" style="display: none;">
             <div id="ui-container">
                 <h2 style="font-size: 1.3rem; margin-bottom: 5px;">가장 완벽한 원을 그려보세요!</h2>
-                <div style="font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; font-weight: normal; line-height: 1.5;">
+                <div
+                    style="font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; font-weight: normal; line-height: 1.5;">
                     💡 <strong><span id="circle-threshold-hint">95</span>점</strong>을 넘는 경우 깜짝 축하 페이지를 만나실 수 있습니다!
                 </div>
                 <div id="score-display">0%</div>
@@ -79,11 +83,14 @@
                 <ul id="circleRankingList" class="ranking-list">
                     <li>데이터를 불러오는 중...</li>
                 </ul>
-            </div> 
-            
-            <div class="circle-game-guide" style="margin-top: 35px; font-family: 'Malgun Gothic', sans-serif; color: #2d3748; line-height: 1.7; text-align: left;">
-                <div class="guide-section-casual" style="padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 5px solid #28a745; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <h3 style="margin-top: 0; color: #28a745; display: flex; align-items: center; gap: 8px; font-size: 1.15rem; font-weight: bold;">
+            </div>
+
+            <div class="circle-game-guide"
+                style="margin-top: 35px; font-family: 'Malgun Gothic', sans-serif; color: #2d3748; line-height: 1.7; text-align: left;">
+                <div class="guide-section-casual"
+                    style="padding: 20px; background-color: #f8f9fa; border-radius: 10px; border-left: 5px solid #28a745; margin-bottom: 20px; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <h3
+                        style="margin-top: 0; color: #28a745; display: flex; align-items: center; gap: 8px; font-size: 1.15rem; font-weight: bold;">
                         🎯 High Score를 위한 팁 (일반 규칙)
                     </h3>
                     <p style="margin-bottom: 15px; font-weight: bold; color: #555; font-size: 0.95rem;">
@@ -93,23 +100,28 @@
                         <li style="margin-bottom: 10px; padding-left: 20px; position: relative;">
                             <span style="position: absolute; left: 0; top: 0;">🟢</span>
                             <strong>숨을 참고 '매끄럽게' 그리세요!</strong><br>
-                            <span style="color: #666;">전체 모양이 동그랗더라도 손을 부르르 떨며 지글지글하게 그리면 미세한 요동을 전부 감지하여 점수를 크게 깎아버립니다. 과감하고 부드럽게 한 번에 슥 돌려주세요!</span>
+                            <span style="color: #666;">전체 모양이 동그랗더라도 손을 부르르 떨며 지글지글하게 그리면 미세한 요동을 전부 감지하여 점수를 크게 깎아버립니다.
+                                과감하고 부드럽게 한 번에 슥 돌려주세요!</span>
                         </li>
                         <li style="margin-bottom: 10px; padding-left: 20px; position: relative;">
                             <span style="position: absolute; left: 0; top: 0;">📐</span>
                             <strong>찌그러진 감자는 안 돼요!</strong><br>
-                            <span style="color: #666;">전체 영역 중 단 한 곳이라도 툭 튀어나오거나 푹 들어간 곳이 발견되면 저격 감점이 들어갑니다. 모든 방향으로 균형 잡힌 형태를 유지해야 합니다.</span>
+                            <span style="color: #666;">전체 영역 중 단 한 곳이라도 툭 튀어나오거나 푹 들어간 곳이 발견되면 저격 감점이 들어갑니다. 모든 방향으로 균형
+                                잡힌 형태를 유지해야 합니다.</span>
                         </li>
                         <li style="margin-bottom: 0; padding-left: 20px; position: relative;">
                             <span style="position: absolute; left: 0; top: 0;">🔒</span>
                             <strong>시작점과 끝점을 완벽하게 닫아주세요!</strong><br>
-                            <span style="color: #666;">원을 잘 그려놓고 마지막에 시작한 곳과 제대로 맞물리지 않아 틈이 벌어지면 미완성으로 판단해 감점됩니다. 끝까지 집중해서 선을 이어주세요.</span>
+                            <span style="color: #666;">원을 잘 그려놓고 마지막에 시작한 곳과 제대로 맞물리지 않아 틈이 벌어지면 미완성으로 판단해 감점됩니다. 끝까지
+                                집중해서 선을 이어주세요.</span>
                         </li>
                     </ul>
                 </div>
 
-                <div class="guide-section-technical" style="padding: 20px; background-color: #f1f5f9; border-radius: 10px; border-left: 5px solid #475569; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
-                    <h3 style="margin-top: 0; color: #475569; display: flex; align-items: center; gap: 8px; font-size: 1.15rem; font-weight: bold;">
+                <div class="guide-section-technical"
+                    style="padding: 20px; background-color: #f1f5f9; border-radius: 10px; border-left: 5px solid #475569; box-shadow: 0 1px 3px rgba(0,0,0,0.05);">
+                    <h3
+                        style="margin-top: 0; color: #475569; display: flex; align-items: center; gap: 8px; font-size: 1.15rem; font-weight: bold;">
                         📊 기하학적 원 판정 알고리즘 명세 (전문 규칙)
                     </h3>
                     <p style="margin-bottom: 15px; font-size: 0.9rem; color: #4a5568;">
@@ -119,22 +131,26 @@
                         <li style="margin-bottom: 10px; padding-left: 20px; position: relative;">
                             <span style="position: absolute; left: 0; top: 0;">📈</span>
                             <strong style="color: #1a202c;">선의 미시적 변화율 제어 (Smoothness Penalty)</strong><br>
-                            <span style="color: #64748b;">이웃한 좌표 간의 반지름 미시적 요동 변화율이 높으면 불연속적인 노이즈로 처리됩니다. 연속된 좌표 벡터가 급격하게 꺾이지 않도록 일정한 속도로 매끄럽게 드로잉해야 스코어 손실을 막을 수 있습니다.</span>
+                            <span style="color: #64748b;">이웃한 좌표 간의 반지름 미시적 요동 변화율이 높으면 불연속적인 노이즈로 처리됩니다. 연속된 좌표 벡터가
+                                급격하게 꺾이지 않도록 일정한 속도로 매끄럽게 드로잉해야 스코어 손실을 막을 수 있습니다.</span>
                         </li>
                         <li style="margin-bottom: 10px; padding-left: 20px; position: relative;">
                             <span style="position: absolute; left: 0; top: 0;">📉</span>
                             <strong style="color: #1a202c;">최대 오차 편차율 저격 (Max Error Penalty)</strong><br>
-                            <span style="color: #64748b;">중심점 좌표로부터 산출된 평균 반지름에서 가장 멀리 벗어난 단 하나의 '최대 오차 지점(Max Error)'을 추적합니다. 특정 구간의 국소적 찌그러짐은 표준편차 점수와 별개로 강력한 감점 페널티를 발생시킵니다.</span>
+                            <span style="color: #64748b;">중심점 좌표로부터 산출된 평균 반지름에서 가장 멀리 벗어난 단 하나의 '최대 오차 지점(Max Error)'을
+                                추적합니다. 특정 구간의 국소적 찌그러짐은 표준편차 점수와 별개로 강력한 감점 페널티를 발생시킵니다.</span>
                         </li>
                         <li style="margin-bottom: 0; padding-left: 20px; position: relative;">
                             <span style="position: absolute; left: 0; top: 0;">📍</span>
                             <strong style="color: #1a202c;">기하학적 폐곡선 완성도 (Gap Penalty)</strong><br>
-                            <span style="color: #64748b;">드로잉의 시작점 좌표와 끝점 좌표 사이의 유클리드 거리가 멀어질수록 미완성 도형으로 간주됩니다. 반경 대비 벌어진 공백 비율에 따라 최종 스코어에서 정량 감점되므로 끝점을 정확히 맞물려 마감해야 합니다.</span>
+                            <span style="color: #64748b;">드로잉의 시작점 좌표와 끝점 좌표 사이의 유클리드 거리가 멀어질수록 미완성 도형으로 간주됩니다. 반경 대비
+                                벌어진 공백 비율에 따라 최종 스코어에서 정량 감점되므로 끝점을 정확히 맞물려 마감해야 합니다.</span>
                         </li>
                     </ul>
                 </div>
-                
-                <div style="margin-top: 15px; padding: 12px; background-color: #edf2f7; border-radius: 6px; font-size: 0.85rem; text-align: center; color: #4a5568; font-weight: bold;">
+
+                <div
+                    style="margin-top: 15px; padding: 12px; background-color: #edf2f7; border-radius: 6px; font-size: 0.85rem; text-align: center; color: #4a5568; font-weight: bold;">
                     💡 시스템 임계값: 반지름 20픽셀 이하의 소형 원은 데이터 축적 연산 대상에서 제외되니 크게 그려주세요!
                 </div>
             </div>
@@ -147,7 +163,8 @@
                 <div>현재 연승: <span id="letter-current-score">0</span></div>
             </div>
 
-            <div style="font-size: 0.95rem; margin: 10px 0 5px 0; font-weight: normal; line-height: 1.5; text-align: center;">
+            <div
+                style="font-size: 0.95rem; margin: 10px 0 5px 0; font-weight: normal; line-height: 1.5; text-align: center;">
                 💡 <strong><span id="abc-threshold-hint">9</span>연승</strong>을 달성하면 깜짝 축하 페이지를 만날 수 있어요!
             </div>
 
@@ -158,10 +175,12 @@
 
             <div id="letter-quiz-area">
                 <!-- 초기 튜토리얼 화면 -->
-                <div style="display:flex; align-items:center; justify-content:center; font-size:3.5rem; font-weight:bold; color:#a0aec0; gap:10px;">
+                <div
+                    style="display:flex; align-items:center; justify-content:center; font-size:3.5rem; font-weight:bold; color:#a0aec0; gap:10px;">
                     <span>A</span>
                     <span>-</span>
-                    <span style="color:#2b6cb0; border:3px solid #2b6cb0; border-radius:12px; width:70px; height:70px; display:flex; align-items:center; justify-content:center; background-color:#ebf8ff;">B</span>
+                    <span
+                        style="color:#2b6cb0; border:3px solid #2b6cb0; border-radius:12px; width:70px; height:70px; display:flex; align-items:center; justify-content:center; background-color:#ebf8ff;">B</span>
                     <span>-</span>
                     <span>C</span>
                 </div>
@@ -187,7 +206,8 @@
 
             <div class="block-score-board">
                 <p>쌓은 층수: <span id="block-score">0</span></p>
-                <div style="font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; font-weight: normal; line-height: 1.5;">
+                <div
+                    style="font-size: 0.95rem; margin-top: 0; margin-bottom: 20px; font-weight: normal; line-height: 1.5;">
                     💡 <strong><span id="block-threshold-hint">9</span>층</strong> 이상 쌓으면 깜짝 축하 페이지를 만날 수 있어요!
                 </div>
             </div>
@@ -216,16 +236,17 @@
 
     </div>
 
-<footer style="text-align:center; padding: 20px 0 10px 0; font-size: 0.8rem; color: #aaa;">
-    ©️ Copyrights and managed by 오늘도하이스코어
-</footer>
+    <footer style="text-align:center; padding: 20px 0 10px 0; font-size: 0.8rem; color: #aaa;">
+        ©️ Copyrights and managed by 오늘도하이스코어
+    </footer>
 
-<script src="config.js"></script>
-<script src="main.js"></script>
-<script src="security.js"></script>
-<script src="game_rps.js"></script>
-<script src="game_circle.js"></script>
-<script src="game_letter.js"></script>
-<script src="game_block.js"></script>
+    <script src="config.js"></script>
+    <script src="main.js"></script>
+    <script src="security.js"></script>
+    <script src="game_rps.js"></script>
+    <script src="game_circle.js"></script>
+    <script src="game_letter.js"></script>
+    <script src="game_block.js"></script>
 </body>
+
 </html>
