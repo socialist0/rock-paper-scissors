@@ -105,7 +105,9 @@ class BlockPiece {
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        if (this.type === 'rectangle' || this.type === 'tall' || this.type === 'base') {입력 내용: if (this.ctx.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+        // 신규
+        if (this.type === 'rectangle' || this.type === 'tall' || this.type === 'base') {
+            ctx.rect(-this.width / 2, -this.height / 2, this.width, this.height);
         } else if (this.type === 'trapezoid') {
             ctx.moveTo(-this.width / 2, this.height / 2);
             ctx.lineTo(-this.width / 2 + this.topWidthOffset, -this.height / 2);
@@ -131,7 +133,9 @@ class BlockPiece {
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        if (this.type === 'rectangle' || this.type === 'tall' || this.type === 'base') {입력 내용: if (this.ctx.rect(this.x, this.y + offsetY, this.width, this.height);
+        // 신규
+        if (this.type === 'rectangle' || this.type === 'tall' || this.type === 'base') {
+            ctx.rect(this.x, this.y + offsetY, this.width, this.height);
         } else if (this.type === 'trapezoid') {
             ctx.moveTo(this.x, this.y + this.height + offsetY);
             ctx.lineTo(this.x + this.topWidthOffset, this.y + offsetY);
