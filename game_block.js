@@ -92,8 +92,16 @@ class BlockPiece {
 
     // 신규
     drawAtOrigin(ctx) {
+        // 신규
         if (this.type === 'rectangle' && blockRectImage.complete) {
-            ctx.drawImage(blockRectImage, -this.width / 2, -this.height / 2, this.width, this.height);
+            const dx = -this.width / 2, dy = -this.height / 2;
+            ctx.drawImage(blockRectImage, dx, dy, this.width, this.height);
+            ctx.save();
+            ctx.globalCompositeOperation = 'source-atop';
+            ctx.globalAlpha = 0.55;
+            ctx.fillStyle = this.color;
+            ctx.fillRect(dx, dy, this.width, this.height);
+            ctx.restore();
             return;
         }
 
@@ -116,8 +124,15 @@ class BlockPiece {
 
     // 신규
     drawNormal(ctx, offsetY) {
+        // 신규
         if (this.type === 'rectangle' && blockRectImage.complete) {
             ctx.drawImage(blockRectImage, this.x, this.y + offsetY, this.width, this.height);
+            ctx.save();
+            ctx.globalCompositeOperation = 'source-atop';
+            ctx.globalAlpha = 0.55;
+            ctx.fillStyle = this.color;
+            ctx.fillRect(this.x, this.y + offsetY, this.width, this.height);
+            ctx.restore();
             return;
         }
 
