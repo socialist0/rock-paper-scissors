@@ -497,10 +497,6 @@ function blockAnimate() {
 
     blockDrawBackgroundGrid(blockCameraY);
 
-    if (!blockIsCollapsing) {
-        blockDrawCenterOfGravityLine(blockCameraY);
-    }
-
     if (blockIsCollapsing) {
         let allOutOffScreen = true;
 
@@ -548,6 +544,7 @@ function blockAnimate() {
             blockCurrentBlock.update();
             blockCurrentBlock.drawNormal(blockCtx, blockCameraY);
         }
+        blockDrawCenterOfGravityLine(blockCameraY);
     }
 
     requestAnimationFrame(blockAnimate);
