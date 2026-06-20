@@ -23,6 +23,7 @@ let blockCurrentBlock = {};
 let blockCameraY = 0;
 let blockTargetCameraY = 0;
 let lastBlockUploadedId = null; // 하이라이트용
+let blockGameOverCalled = false;
 
 const blockColors = [
     '#ff595e', '#ffca3a', '#8ac926', '#1982c4',
@@ -555,7 +556,9 @@ function initBlockGame() {
 
     // 시작 버튼
     blockStartBtn?.addEventListener('click', (e) => {
+        e.preventDefault();
         e.stopPropagation();
+        e.stopImmediatePropagation();
         blockInitGame();
     });
 
