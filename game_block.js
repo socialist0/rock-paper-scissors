@@ -2,6 +2,10 @@
 // game_block.js — 블록쌓기 게임 독립 모듈
 // ==========================================
 
+// ── 직사각형 블록 이미지 ──
+const blockRectImage = new Image();
+blockRectImage.src = 'images/busimage.png';
+
 // ── 캔버스 및 DOM 참조 ──
 let blockCanvas, blockCtx;
 let blockScoreEl, blockOverlay, blockStartBtn, blockTitleEl, blockFinalScoreEl;
@@ -86,7 +90,13 @@ class BlockPiece {
         }
     }
 
+    // 신규
     drawAtOrigin(ctx) {
+        if (this.type === 'rectangle' && blockRectImage.complete) {
+            ctx.drawImage(blockRectImage, -this.width / 2, -this.height / 2, this.width, this.height);
+            return;
+        }
+
         ctx.fillStyle = this.color;
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
@@ -104,7 +114,13 @@ class BlockPiece {
         ctx.stroke();
     }
 
+    // 신규
     drawNormal(ctx, offsetY) {
+        if (this.type === 'rectangle' && blockRectImage.complete) {
+            ctx.drawImage(blockRectImage, this.x, this.y + offsetY, this.width, this.height);
+            return;
+        }
+
         ctx.fillStyle = this.color;
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
