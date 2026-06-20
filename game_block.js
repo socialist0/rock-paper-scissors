@@ -95,13 +95,9 @@ class BlockPiece {
         // 신규
         if (this.type === 'rectangle' && blockRectImage.complete) {
             const dx = -this.width / 2, dy = -this.height / 2;
-            ctx.drawImage(blockRectImage, dx, dy, this.width, this.height);
-            ctx.save();
-            ctx.globalCompositeOperation = 'source-atop';
-            ctx.globalAlpha = 0.55;
             ctx.fillStyle = this.color;
             ctx.fillRect(dx, dy, this.width, this.height);
-            ctx.restore();
+            ctx.drawImage(blockRectImage, dx, dy, this.width, this.height);
             return;
         }
 
@@ -109,8 +105,7 @@ class BlockPiece {
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        if (this.type === 'rectangle' || this.type === 'tall') {
-            ctx.rect(-this.width / 2, -this.height / 2, this.width, this.height);
+        if (this.type === 'rectangle' || this.type === 'tall' || this.type === 'base') {입력 내용: if (this.ctx.rect(-this.width / 2, -this.height / 2, this.width, this.height);
         } else if (this.type === 'trapezoid') {
             ctx.moveTo(-this.width / 2, this.height / 2);
             ctx.lineTo(-this.width / 2 + this.topWidthOffset, -this.height / 2);
@@ -126,13 +121,9 @@ class BlockPiece {
     drawNormal(ctx, offsetY) {
         // 신규
         if (this.type === 'rectangle' && blockRectImage.complete) {
-            ctx.drawImage(blockRectImage, this.x, this.y + offsetY, this.width, this.height);
-            ctx.save();
-            ctx.globalCompositeOperation = 'source-atop';
-            ctx.globalAlpha = 0.55;
             ctx.fillStyle = this.color;
             ctx.fillRect(this.x, this.y + offsetY, this.width, this.height);
-            ctx.restore();
+            ctx.drawImage(blockRectImage, this.x, this.y + offsetY, this.width, this.height);
             return;
         }
 
@@ -140,8 +131,7 @@ class BlockPiece {
         ctx.strokeStyle = 'rgba(0,0,0,0.2)';
         ctx.lineWidth = 1;
         ctx.beginPath();
-        if (this.type === 'rectangle' || this.type === 'tall') {
-            ctx.rect(this.x, this.y + offsetY, this.width, this.height);
+        if (this.type === 'rectangle' || this.type === 'tall' || this.type === 'base') {입력 내용: if (this.ctx.rect(this.x, this.y + offsetY, this.width, this.height);
         } else if (this.type === 'trapezoid') {
             ctx.moveTo(this.x, this.y + this.height + offsetY);
             ctx.lineTo(this.x + this.topWidthOffset, this.y + offsetY);
@@ -168,8 +158,8 @@ function blockInitGame() {
     if (blockScoreEl) blockScoreEl.innerText = blockScore;
 
     // 고정 바닥판
-    blockStack.push(new BlockPiece(120, BLOCK_CANVAS_HEIGHT - 30, 160, 30, '#444', 0, 0, 'rectangle'));
-
+    // 신규
+    blockStack.push(new BlockPiece(120, BLOCK_CANVAS_HEIGHT - 30, 160, 30, '#444', 0, 0, 'base'));
     blockSpawnNextBlock();
     blockGameActive = true;
     if (blockOverlay) blockOverlay.style.display = 'none';
